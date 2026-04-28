@@ -1,63 +1,71 @@
-import { createClient } from '@supabase/supabase-js'
-import type {
-  Procedure,
-  Client,
-  Booking,
-  WorkingHours,
-  Block,
-  Transaction,
-  Message,
-} from '@/types'
+import { createClient } from "@supabase/supabase-js";
 
-// Tipo do banco para o cliente Supabase — mapeia tabelas para Row/Insert/Update
+import type {
+  CalendarEvent,
+  Client,
+  FinanceEntry,
+  Service,
+  Settings,
+  StudioProfile,
+  WhatsAppSession,
+  WorkingHours,
+} from "@/types";
+
 export type Database = {
   public: {
     Tables: {
-      procedures: {
-        Row: Procedure
-        Insert: Omit<Procedure, 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<Omit<Procedure, 'id'>>
-      }
       clients: {
-        Row: Client
-        Insert: Omit<Client, 'id' | 'created_at' | 'updated_at'>
-        Update: Partial<Omit<Client, 'id'>>
-      }
-      bookings: {
-        Row: Booking
-        Insert: Omit<Booking, 'id' | 'created_at' | 'updated_at' | 'client' | 'procedure'>
-        Update: Partial<Omit<Booking, 'id' | 'client' | 'procedure'>>
-      }
+        Row: Client;
+        Insert: Omit<Client, "id" | "createdAt" | "updatedAt" | "stats">;
+        Update: Partial<
+          Omit<Client, "id" | "createdAt" | "updatedAt" | "stats">
+        >;
+      };
+      services: {
+        Row: Service;
+        Insert: Omit<Service, "id" | "createdAt" | "updatedAt">;
+        Update: Partial<Omit<Service, "id" | "createdAt" | "updatedAt">>;
+      };
+      calendar_events: {
+        Row: CalendarEvent;
+        Insert: Omit<CalendarEvent, "id" | "createdAt" | "updatedAt">;
+        Update: Partial<
+          Omit<CalendarEvent, "id" | "createdAt" | "updatedAt">
+        >;
+      };
+      finance_entries: {
+        Row: FinanceEntry;
+        Insert: Omit<FinanceEntry, "id" | "createdAt" | "updatedAt">;
+        Update: Partial<Omit<FinanceEntry, "id" | "createdAt" | "updatedAt">>;
+      };
       working_hours: {
-        Row: WorkingHours
-        Insert: Omit<WorkingHours, 'id'>
-        Update: Partial<Omit<WorkingHours, 'id'>>
-      }
-      blocks: {
-        Row: Block
-        Insert: Omit<Block, 'id' | 'created_at'>
-        Update: Partial<Omit<Block, 'id'>>
-      }
-      transactions: {
-        Row: Transaction
-        Insert: Omit<Transaction, 'id' | 'created_at'>
-        Update: Partial<Omit<Transaction, 'id'>>
-      }
-      messages: {
-        Row: Message
-        Insert: Omit<Message, 'id' | 'created_at'>
-        Update: Partial<Omit<Message, 'id'>>
-      }
-    }
-  }
-}
+        Row: WorkingHours;
+        Insert: Omit<WorkingHours, "id">;
+        Update: Partial<Omit<WorkingHours, "id">>;
+      };
+      settings: {
+        Row: Settings;
+        Insert: Settings;
+        Update: Partial<Settings>;
+      };
+      whatsapp_sessions: {
+        Row: WhatsAppSession;
+        Insert: Omit<WhatsAppSession, "updatedAt">;
+        Update: Partial<Omit<WhatsAppSession, "updatedAt">>;
+      };
+      studio_profile: {
+        Row: StudioProfile;
+        Insert: Omit<StudioProfile, 'created_at'>;
+        Update: Partial<Omit<StudioProfile, 'id' | 'created_at'>>;
+      };
+    };
+  };
+};
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
-// Cliente público — usado nos componentes client-side e Server Components
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey)
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
 
-// Cliente admin — usar apenas em Server Actions e API Routes (chave service role)
 export const supabaseAdmin = () =>
-  createClient<Database>(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+  createClient<Database>(supabaseUrl, process.env.SUPABASE_SERVICE_ROLE_KEY!);

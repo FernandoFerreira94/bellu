@@ -1,117 +1,164 @@
-// ============================================================
-// Types — Ayumi Nails
-// ============================================================
+export type CalendarView = "day" | "week" | "month" | "agenda";
 
-export type Procedure = {
-  id: string
-  name: string
-  duration: number   // minutos
-  price: number
-  description?: string | null
-  active: boolean
-  created_at: string
-  updated_at: string
-}
+export type CalendarEventStatus = "confirmed" | "tentative" | "cancelled";
+export type CalendarEventSource = "google" | "manual" | "whatsapp" | "luna";
+export type FinanceEntryType = "income" | "expense";
+export type WhatsAppConnectionStatus = "disconnected" | "pairing" | "connected";
+export type LunaMessageRole = "assistant" | "user" | "system";
+
+export type Service = {
+  id: string;
+  name: string;
+  description: string | null;
+  durationInMinutes: number;
+  price: number;
+  isActive: boolean;
+  color: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ClientHistoryItem = {
+  id: string;
+  eventId: string | null;
+  serviceId: string | null;
+  date: string;
+  notes: string | null;
+  amount: number | null;
+};
 
 export type Client = {
-  id: string
-  name: string
-  phone: string
-  email?: string | null
-  notes?: string | null
-  created_at: string
-  updated_at: string
-}
+  id: string;
+  name: string;
+  phone: string;
+  email: string | null;
+  birthDate: string | null;
+  notes: string | null;
+  tags: string[];
+  lastVisitAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  stats?: {
+    totalVisits: number;
+    lifetimeValue: number;
+  };
+};
 
-export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'completed'
-export type PaymentStatus = 'pending' | 'paid' | 'refunded'
+export type ClientProfile = Client & {
+  history: ClientHistoryItem[];
+};
 
-export type Booking = {
-  id: string
-  client_id: string
-  procedure_id: string
-  start_time: string
-  end_time: string
-  status: BookingStatus
-  google_event_id?: string | null
-  payment_status?: PaymentStatus | null
-  notes?: string | null
-  created_at: string
-  updated_at: string
-  // relações opcionais (quando joined)
-  client?: Client
-  procedure?: Procedure
-}
+export type CalendarEvent = {
+  id: string;
+  externalId: string | null;
+  title: string;
+  description: string | null;
+  start: string;
+  end: string;
+  status: CalendarEventStatus;
+  source: CalendarEventSource;
+  clientId: string | null;
+  serviceId: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type FinanceEntry = {
+  id: string;
+  type: FinanceEntryType;
+  category: string;
+  description: string | null;
+  amount: number;
+  occurredAt: string;
+  serviceId: string | null;
+  clientId: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type FinanceSummary = {
+  totalIncome: number;
+  totalExpenses: number;
+  netProfit: number;
+  periodLabel: string;
+};
 
 export type WorkingHours = {
-  id: string
-  day_of_week: number  // 0=Dom … 6=Sáb
-  start_time: string   // HH:mm
-  end_time: string     // HH:mm
-  active: boolean
-}
+  id: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  isActive: boolean;
+};
 
-export type Block = {
-  id: string
-  start_time: string
-  end_time: string
-  reason?: string | null
-  google_event_id?: string | null
-  created_at: string
-}
+export type WhatsAppSession = {
+  id: string;
+  status: WhatsAppConnectionStatus;
+  qrCode: string | null;
+  phone: string | null;
+  sessionPath: string;
+  updatedAt: string;
+};
 
-export type TransactionType = 'income' | 'expense'
-export type PaymentMethod = 'pix' | 'cash' | 'credit' | 'debit' | 'mp'
+export type Settings = {
+  workingHours: WorkingHours[];
+  gapBetweenClientsInMinutes: number;
+  whatsapp: {
+    sessionPath: string;
+    autoReplyEnabled: boolean;
+    qrCode: string | null;
+  };
+};
 
-export type Transaction = {
-  id: string
-  booking_id?: string | null
-  type: TransactionType
-  amount: number
-  description: string
-  date: string
-  payment_method?: PaymentMethod | null
-  created_at: string
-}
+export type LunaMessage = {
+  id: string;
+  role: LunaMessageRole;
+  content: string;
+  createdAt: string;
+};
 
-export type MessageDirection = 'outbound' | 'inbound'
-export type MessageStatus = 'pending' | 'sent' | 'delivered' | 'failed'
+export type LunaChatState = {
+  isOpen: boolean;
+  messages: LunaMessage[];
+  isLoading: boolean;
+};
 
-export type Message = {
-  id: string
-  booking_id?: string | null
-  client_id?: string | null
-  phone: string
-  content: string
-  direction: MessageDirection
-  status: MessageStatus
-  sent_at?: string | null
-  created_at: string
-}
+export type CalendarSyncPayload = {
+  events: CalendarEvent[];
+  nextSyncToken: string | null;
+  syncedAt: string;
+};
 
-export type TimeSlot = {
-  start: string  // ISO string
-  end: string    // ISO string
-  available: boolean
-}
+export type GoogleCalendarWebhookPayload = {
+  channelId: string;
+  resourceId: string;
+  resourceState: string;
+  resourceUri: string | null;
+  receivedAt: string;
+};
 
-// ============================================================
-// Input types (para forms e API)
-// ============================================================
-// Importar Zod em cada form para validação em runtime
+export type DashboardDaySummary = {
+  date: string;
+  appointmentsCount: number;
+  clientsCount: number;
+  expectedRevenue: number;
+  pendingMessages: number;
+};
 
-export type CreateBookingInput = {
-  client_name: string
-  client_phone: string
-  client_email?: string
-  procedure_id: string
-  start_time: string
-  notes?: string
-}
+export type Specialty =
+  | 'nail_designer'
+  | 'hair'
+  | 'makeup'
+  | 'waxing'
+  | 'massage'
+  | 'other';
 
-export type CreateProcedureInput = {
-  name: string
-  duration: number
-  price: number
-  description?: string
-}
+export type StudioProfile = {
+  id: string;
+  studio_name: string;
+  owner_name: string;
+  specialty: Specialty;
+  logo_url: string | null;
+  onboarding_completed: boolean;
+  created_at: string;
+};
