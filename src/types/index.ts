@@ -13,6 +13,7 @@ export type Service = {
   durationInMinutes: number;
   price: number;
   isActive: boolean;
+  lunaEnabled: boolean;
   color: string | null;
   createdAt: string;
   updatedAt: string;
