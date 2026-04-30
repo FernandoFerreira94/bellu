@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { DashboardShell } from "@/components/layout/dashboard-shell";
-import { LunaWidget } from "@/components/luna/luna-widget";
+import { LunaSheet } from "@/components/luna/luna-sheet";
 import { UserMenu } from "@/components/layout/user-menu";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import Header from "@/components/layout/header";
@@ -32,7 +32,7 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
         {children}
       </DashboardShell>
 
-      <LunaWidget />
+      <LunaSheet />
     </>
   );
 }
