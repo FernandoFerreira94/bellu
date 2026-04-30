@@ -50,7 +50,8 @@ export function HeaderMenu({ open, onClose, user, userGoogle }: Props) {
     const value = field === 'studio_name' ? studioName : ownerName
     const { data: { user: authUser } } = await supabase.auth.getUser()
     if (!authUser) return
-    await supabase.from('studio_profile').update({ [field]: value }).eq('user_id', authUser.id)
+    const payload = field === 'studio_name' ? { studio_name: value } : { owner_name: value }
+    await supabase.from('studio_profile').update(payload).eq('id', authUser.id)
     setEditingField(null)
   }
 
@@ -65,7 +66,7 @@ export function HeaderMenu({ open, onClose, user, userGoogle }: Props) {
     const { error } = await supabase.storage.from('studio-assets').upload(path, file, { upsert: true })
     if (!error) {
       const { data: { publicUrl } } = supabase.storage.from('studio-assets').getPublicUrl(path)
-      await supabase.from('studio_profile').update({ logo_url: publicUrl }).eq('user_id', authUser.id)
+      await supabase.from('studio_profile').update({ logo_url: publicUrl }).eq('id', authUser.id)
       setLogoUrl(publicUrl)
     }
     setUploadingLogo(false)
@@ -74,7 +75,7 @@ export function HeaderMenu({ open, onClose, user, userGoogle }: Props) {
   async function handleLogoRemove() {
     const { data: { user: authUser } } = await supabase.auth.getUser()
     if (!authUser) return
-    await supabase.from('studio_profile').update({ logo_url: null }).eq('user_id', authUser.id)
+    await supabase.from('studio_profile').update({ logo_url: null }).eq('id', authUser.id)
     setLogoUrl(null)
   }
 

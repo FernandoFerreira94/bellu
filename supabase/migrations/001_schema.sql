@@ -39,11 +39,11 @@ create table public.working_hours (
   id           uuid primary key default uuid_generate_v4(),
   day_of_week  integer not null check (day_of_week between 0 and 6), -- 0=Dom, 6=Sáb
   start_time   time not null default '08:00',
-  end_time     time not null default '18:00',
+  end_time     time not null default '19:00',
   active       boolean not null default true,
   constraint working_hours_day_unique unique (day_of_week),
   constraint working_hours_time_check check (
-    start_time >= '08:00' and end_time <= '18:00' and start_time < end_time
+    start_time >= '08:00' and end_time <= '19:00' and start_time < end_time
   )
 );
 
@@ -67,7 +67,7 @@ create table public.bookings (
   constraint bookings_time_order check (start_time < end_time),
   constraint bookings_within_hours check (
     extract(hour from start_time at time zone 'America/Sao_Paulo') >= 8 and
-    extract(hour from end_time at time zone 'America/Sao_Paulo') <= 18
+    extract(hour from end_time at time zone 'America/Sao_Paulo') <= 19
   )
 );
 

@@ -86,10 +86,10 @@ export type FinanceSummary = {
 
 export type WorkingHours = {
   id: string;
-  dayOfWeek: number;
-  startTime: string;
-  endTime: string;
-  isActive: boolean;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  active: boolean;
 };
 
 export type WhatsAppSession = {

@@ -12,23 +12,24 @@
 
 ## Mapa de Arquivos
 
-| Arquivo | Ação | Responsabilidade |
-|---|---|---|
-| `src/lib/supabase-server.ts` | Criar | Client Supabase para Server Components e Route Handlers |
-| `src/lib/supabase-browser.ts` | Criar | Client Supabase para Client Components |
-| `src/middleware.ts` | Criar | Proteção de rotas + redirects por estado de auth/onboarding |
-| `src/app/(auth)/callback/route.ts` | Criar | OAuth callback — troca code por session |
-| `src/app/(auth)/page.tsx` | Modificar | Botão Google com OAuth real |
-| `src/app/(auth)/onboarding/page.tsx` | Reescrever | Multi-step form (3 passos) |
-| `src/app/api/studio/route.ts` | Criar | POST — salva studio_profile no Supabase |
-| `src/types/index.ts` | Modificar | Adicionar type `StudioProfile` e `Specialty` |
-| `src/lib/supabase.ts` | Modificar | Adicionar `studio_profile` ao tipo `Database` |
+| Arquivo                              | Ação       | Responsabilidade                                            |
+| ------------------------------------ | ---------- | ----------------------------------------------------------- |
+| `src/lib/supabase-server.ts`         | Criar      | Client Supabase para Server Components e Route Handlers     |
+| `src/lib/supabase-browser.ts`        | Criar      | Client Supabase para Client Components                      |
+| `src/middleware.ts`                  | Criar      | Proteção de rotas + redirects por estado de auth/onboarding |
+| `src/app/(auth)/callback/route.ts`   | Criar      | OAuth callback — troca code por session                     |
+| `src/app/(auth)/page.tsx`            | Modificar  | Botão Google com OAuth real                                 |
+| `src/app/(auth)/onboarding/page.tsx` | Reescrever | Multi-step form (3 passos)                                  |
+| `src/app/api/studio/route.ts`        | Criar      | POST — salva studio_profile no Supabase                     |
+| `src/types/index.ts`                 | Modificar  | Adicionar type `StudioProfile` e `Specialty`                |
+| `src/lib/supabase.ts`                | Modificar  | Adicionar `studio_profile` ao tipo `Database`               |
 
 ---
 
 ## Task 1: Instalar @supabase/ssr
 
 **Files:**
+
 - Modify: `package.json`
 
 - [ ] **Step 1: Instalar pacote**
@@ -128,6 +129,7 @@ Expected: colunas id, studio_name, owner_name, specialty, logo_url, onboarding_c
 ## Task 3: Adicionar types e atualizar Database type
 
 **Files:**
+
 - Modify: `src/types/index.ts`
 - Modify: `src/lib/supabase.ts`
 
@@ -137,12 +139,12 @@ Adicionar ao final do arquivo:
 
 ```typescript
 export type Specialty =
-  | 'nail_designer'
-  | 'hair'
-  | 'makeup'
-  | 'waxing'
-  | 'massage'
-  | 'other';
+  | "nail_designer"
+  | "hair"
+  | "makeup"
+  | "waxing"
+  | "massage"
+  | "other";
 
 export type StudioProfile = {
   id: string;
@@ -162,9 +164,9 @@ Dentro de `Tables`, adicionar após `whatsapp_sessions`:
 ```typescript
 studio_profile: {
   Row: StudioProfile;
-  Insert: Omit<StudioProfile, 'created_at'>;
-  Update: Partial<Omit<StudioProfile, 'id' | 'created_at'>>;
-};
+  Insert: Omit<StudioProfile, "created_at">;
+  Update: Partial<Omit<StudioProfile, "id" | "created_at">>;
+}
 ```
 
 Adicionar import de `StudioProfile` e `Specialty` no topo do arquivo:
@@ -194,18 +196,19 @@ git commit -m "feat: add StudioProfile type and Database mapping"
 ## Task 4: Criar clientes Supabase para SSR
 
 **Files:**
+
 - Create: `src/lib/supabase-server.ts`
 - Create: `src/lib/supabase-browser.ts`
 
 - [ ] **Step 1: Criar `src/lib/supabase-server.ts`**
 
 ```typescript
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-import type { Database } from '@/lib/supabase'
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
+import type { Database } from "@/lib/supabase";
 
 export async function createSupabaseServerClient() {
-  const cookieStore = await cookies()
+  const cookieStore = await cookies();
 
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -213,30 +216,30 @@ export async function createSupabaseServerClient() {
     {
       cookies: {
         getAll() {
-          return cookieStore.getAll()
+          return cookieStore.getAll();
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          )
+            cookieStore.set(name, value, options),
+          );
         },
       },
-    }
-  )
+    },
+  );
 }
 ```
 
 - [ ] **Step 2: Criar `src/lib/supabase-browser.ts`**
 
 ```typescript
-import { createBrowserClient } from '@supabase/ssr'
-import type { Database } from '@/lib/supabase'
+import { createBrowserClient } from "@supabase/ssr";
+import type { Database } from "@/lib/supabase";
 
 export function createSupabaseBrowserClient() {
   return createBrowserClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  );
 }
 ```
 
@@ -252,47 +255,50 @@ git commit -m "feat: add Supabase SSR client helpers"
 ## Task 5: Criar callback de OAuth
 
 **Files:**
+
 - Create: `src/app/(auth)/callback/route.ts`
 
 - [ ] **Step 1: Criar `src/app/(auth)/callback/route.ts`**
 
 ```typescript
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabase-server'
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url)
-  const code = searchParams.get('code')
+  const { searchParams, origin } = new URL(request.url);
+  const code = searchParams.get("code");
 
   if (!code) {
-    return NextResponse.redirect(`${origin}/?error=no_code`)
+    return NextResponse.redirect(`${origin}/?error=no_code`);
   }
 
-  const supabase = await createSupabaseServerClient()
-  const { error } = await supabase.auth.exchangeCodeForSession(code)
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
-    return NextResponse.redirect(`${origin}/?error=auth_failed`)
+    return NextResponse.redirect(`${origin}/?error=auth_failed`);
   }
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.redirect(`${origin}/`)
+    return NextResponse.redirect(`${origin}/`);
   }
 
   const { data: profile } = await supabase
-    .from('studio_profile')
-    .select('onboarding_completed')
-    .eq('id', user.id)
-    .single()
+    .from("studio_profile")
+    .select("onboarding_completed")
+    .eq("id", user.id)
+    .single();
 
   if (profile?.onboarding_completed) {
-    return NextResponse.redirect(`${origin}/dashboard`)
+    return NextResponse.redirect(`${origin}/dashboard`);
   }
 
-  return NextResponse.redirect(`${origin}/onboarding`)
+  return NextResponse.redirect(`${origin}/onboarding`);
 }
 ```
 
@@ -308,16 +314,17 @@ git commit -m "feat: add OAuth callback route handler"
 ## Task 6: Criar middleware de proteção de rotas
 
 **Files:**
+
 - Create: `src/middleware.ts`
 
 - [ ] **Step 1: Criar `src/middleware.ts`**
 
 ```typescript
-import { createServerClient } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request })
+  let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -325,55 +332,61 @@ export async function middleware(request: NextRequest) {
     {
       cookies: {
         getAll() {
-          return request.cookies.getAll()
+          return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          )
-          supabaseResponse = NextResponse.next({ request })
+            request.cookies.set(name, value),
+          );
+          supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
+            supabaseResponse.cookies.set(name, value, options),
+          );
         },
       },
-    }
-  )
+    },
+  );
 
-  const { data: { user } } = await supabase.auth.getUser()
-  const path = request.nextUrl.pathname
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const path = request.nextUrl.pathname;
 
   // Sem sessão → proteger dashboard
-  if (!user && path.startsWith('/dashboard')) {
-    return NextResponse.redirect(new URL('/', request.url))
+  if (!user && path.startsWith("/dashboard")) {
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   if (user) {
     const { data: profile } = await supabase
-      .from('studio_profile')
-      .select('onboarding_completed')
-      .eq('id', user.id)
-      .single()
+      .from("studio_profile")
+      .select("onboarding_completed")
+      .eq("id", user.id)
+      .single();
 
-    const completed = profile?.onboarding_completed ?? false
+    const completed = profile?.onboarding_completed ?? false;
 
     // Sessão sem onboarding → forçar onboarding
-    if (!completed && !path.startsWith('/onboarding') && !path.startsWith('/auth')) {
-      return NextResponse.redirect(new URL('/onboarding', request.url))
+    if (
+      !completed &&
+      !path.startsWith("/onboarding") &&
+      !path.startsWith("/auth")
+    ) {
+      return NextResponse.redirect(new URL("/onboarding", request.url));
     }
 
     // Sessão com onboarding completo + página de login → dashboard
-    if (completed && path === '/') {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
+    if (completed && path === "/") {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }
 
-  return supabaseResponse
+  return supabaseResponse;
 }
 
 export const config = {
-  matcher: ['/', '/dashboard/:path*', '/onboarding'],
-}
+  matcher: ["/", "/dashboard/:path*", "/onboarding"],
+};
 ```
 
 - [ ] **Step 2: Commit**
@@ -388,6 +401,7 @@ git commit -m "feat: add auth middleware with onboarding redirect logic"
 ## Task 7: Atualizar página de login com OAuth real
 
 **Files:**
+
 - Modify: `src/app/(auth)/page.tsx`
 
 - [ ] **Step 1: Reescrever `src/app/(auth)/page.tsx`**
@@ -469,54 +483,65 @@ git commit -m "feat: wire Google OAuth on login page"
 ## Task 8: Criar API route para salvar studio_profile
 
 **Files:**
+
 - Create: `src/app/api/studio/route.ts`
 
 - [ ] **Step 1: Criar `src/app/api/studio/route.ts`**
 
 ```typescript
-import { NextResponse } from 'next/server'
-import { createSupabaseServerClient } from '@/lib/supabase-server'
-import { z } from 'zod'
+import { NextResponse } from "next/server";
+import { createSupabaseServerClient } from "@/lib/supabase-server";
+import { z } from "zod";
 
 const studioSchema = z.object({
-  studio_name: z.string().min(2, 'Mínimo 2 caracteres'),
-  owner_name: z.string().min(2, 'Mínimo 2 caracteres'),
-  specialty: z.enum(['nail_designer', 'hair', 'makeup', 'waxing', 'massage', 'other']),
+  studio_name: z.string().min(2, "Mínimo 2 caracteres"),
+  owner_name: z.string().min(2, "Mínimo 2 caracteres"),
+  specialty: z.enum([
+    "nail_designer",
+    "hair",
+    "makeup",
+    "waxing",
+    "massage",
+    "other",
+  ]),
   logo_url: z.string().url().nullable().optional(),
-})
+});
 
 export async function POST(request: Request) {
-  const supabase = await createSupabaseServerClient()
+  const supabase = await createSupabaseServerClient();
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   if (!user) {
-    return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
-  const body = await request.json()
-  const parsed = studioSchema.safeParse(body)
+  const body = await request.json();
+  const parsed = studioSchema.safeParse(body);
 
   if (!parsed.success) {
     return NextResponse.json(
       { error: parsed.error.errors[0].message },
-      { status: 400 }
-    )
+      { status: 400 },
+    );
   }
 
-  const { error } = await supabase
-    .from('studio_profile')
-    .upsert({
-      id: user.id,
-      ...parsed.data,
-      logo_url: parsed.data.logo_url ?? null,
-      onboarding_completed: true,
-    })
+  const { error } = await supabase.from("studio_profile").upsert({
+    id: user.id,
+    ...parsed.data,
+    logo_url: parsed.data.logo_url ?? null,
+    onboarding_completed: true,
+  });
 
   if (error) {
-    return NextResponse.json({ error: 'Erro ao salvar perfil' }, { status: 500 })
+    return NextResponse.json(
+      { error: "Erro ao salvar perfil" },
+      { status: 500 },
+    );
   }
 
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ success: true });
 }
 ```
 
@@ -532,6 +557,7 @@ git commit -m "feat: add API route to save studio_profile"
 ## Task 9: Reescrever onboarding multi-step
 
 **Files:**
+
 - Modify: `src/app/(auth)/onboarding/page.tsx`
 
 - [ ] **Step 1: Reescrever `src/app/(auth)/onboarding/page.tsx`**
@@ -863,6 +889,7 @@ git commit -m "feat: multi-step onboarding (studio name, specialty, logo)"
 ## Configuração Manual (Fernando)
 
 Antes de testar:
+
 1. **Supabase Dashboard** → Auth → Providers → Google → Enable → inserir Client ID + Secret
 2. **Google Cloud Console** → criar OAuth credentials:
    - Authorized redirect URI: `https://<ref>.supabase.co/auth/v1/callback`

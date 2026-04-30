@@ -10,7 +10,27 @@ import {
 
 import { cn } from "@/lib/utils"
 import { Button, buttonVariants } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { ChevronLeftIcon, ChevronRightIcon, ChevronDownIcon } from "lucide-react"
+
+type CalendarDropdownOption = {
+  value: number
+  label: string
+  disabled: boolean
+}
+
+type CalendarDropdownProps = Omit<
+  React.SelectHTMLAttributes<HTMLSelectElement>,
+  "children"
+> & {
+  options?: CalendarDropdownOption[]
+}
 
 function Calendar({
   className,
@@ -134,6 +154,7 @@ function Calendar({
         ...classNames,
       }}
       components={{
+        Dropdown: CalendarDropdown,
         Root: ({ className, rootRef, ...props }) => {
           return (
             <div
@@ -177,6 +198,53 @@ function Calendar({
       }}
       {...props}
     />
+  )
+}
+
+function CalendarDropdown({
+  value,
+  onChange,
+  options,
+  disabled,
+  className,
+  "aria-label": ariaLabel,
+}: CalendarDropdownProps) {
+  const selectedOption = options?.find((option) => option.value === Number(value))
+
+  return (
+    <Select
+      value={value?.toString()}
+      disabled={disabled}
+      onValueChange={(nextValue) => {
+        if (!nextValue) return
+
+        onChange?.({
+          target: { value: nextValue },
+        } as React.ChangeEvent<HTMLSelectElement>)
+      }}
+    >
+      <SelectTrigger
+        aria-label={ariaLabel}
+        size="sm"
+        className={cn(
+          "h-(--cell-size) min-w-20 border-0 bg-transparent px-2 font-medium shadow-none",
+          className
+        )}
+      >
+        <SelectValue>{selectedOption?.label}</SelectValue>
+      </SelectTrigger>
+      <SelectContent align="center" className="min-w-24">
+        {options?.map((option) => (
+          <SelectItem
+            key={option.value}
+            value={option.value.toString()}
+            disabled={option.disabled}
+          >
+            {option.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   )
 }
 

@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Clock } from 'lucide-react'
 
-const DAY_NAMES = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
+const DAY_NAMES = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
 type WorkingHourRow = {
   id: string
@@ -32,7 +32,7 @@ function buildDefaults(): DraftRow[] {
     id: null,
     day_of_week: i,
     start_time: '08:00',
-    end_time: '18:00',
+    end_time: '19:00',
     active: i >= 1 && i <= 5,
   }))
 }
@@ -44,8 +44,7 @@ export default function SettingsPage() {
   const { data: savedHours, isLoading } = useQuery<WorkingHourRow[]>({
     queryKey: ['working_hours'],
     queryFn: async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (sb as any)
+      const { data, error } = await sb
         .from('working_hours')
         .select('id, day_of_week, start_time, end_time, active')
         .order('day_of_week')
@@ -81,15 +80,13 @@ export default function SettingsPage() {
           active: row.active,
         }
         if (row.id) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { error } = await (sb as any)
+          const { error } = await sb
             .from('working_hours')
             .update(payload)
             .eq('id', row.id)
           if (error) throw error
         } else {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const { error } = await (sb as any)
+          const { error } = await sb
             .from('working_hours')
             .insert(payload)
           if (error) throw error
@@ -120,7 +117,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="px-4 py-6 max-w-lg mx-auto">
+    <div className="px-2 py-6 max-w-lg mx-auto">
       <div className="flex items-center gap-2 mb-6">
         <Clock className="w-4 h-4 text-rose-400" />
         <h1 className="text-base font-semibold text-stone-800">Horários de expediente</h1>
@@ -138,7 +135,7 @@ export default function SettingsPage() {
               checked={row.active}
               onCheckedChange={(v) => update(i, 'active', v)}
             />
-            <Label className={`w-16 text-sm font-medium ${row.active ? 'text-stone-700' : 'text-stone-400'}`}>
+            <Label className={`w-12 text-sm font-medium ${row.active ? 'text-stone-700' : 'text-stone-400'}`}>
               {DAY_NAMES[row.day_of_week]}
             </Label>
             {row.active ? (
@@ -149,7 +146,7 @@ export default function SettingsPage() {
                   onChange={(e) => update(i, 'start_time', e.target.value)}
                   className="flex-1 text-sm rounded-xl border border-stone-200 px-2 py-1.5 text-stone-700 outline-none focus:border-rose-300"
                 />
-                <span className="text-xs text-stone-400">até</span>
+                <span className="text-xs text-stone-400">-</span>
                 <input
                   type="time"
                   value={row.end_time}
