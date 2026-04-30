@@ -1,42 +1,16 @@
 // src/lib/luna-tools.ts
-import { tool } from 'ai'
+import { tool, zodSchema } from 'ai'
 import { z } from 'zod'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
-
-const slotsParams = z.object({
-  date: z.string().describe('Data no formato YYYY-MM-DD'),
-  procedure_id: z.string().uuid().describe('ID do procedimento'),
-})
-
-const bookingsParams = z.object({
-  from: z.string().describe('Data início YYYY-MM-DD'),
-  to: z.string().describe('Data fim YYYY-MM-DD'),
-})
-
-const createBookingParams = z.object({
-  client_id: z.string().uuid().describe('ID da cliente'),
-  procedure_id: z.string().uuid().describe('ID do procedimento'),
-  start_time: z.string().describe('Horário de início no formato ISO 8601, ex: 2026-05-01T09:00:00'),
-})
-
-const cancelBookingParams = z.object({
-  booking_id: z.string().uuid().describe('ID do agendamento'),
-})
-
-const clientsParams = z.object({
-  search: z.string().optional().describe('Texto para buscar por nome ou telefone (opcional)'),
-})
-
-const financialParams = z.object({
-  from: z.string().describe('Data início YYYY-MM-DD'),
-  to: z.string().describe('Data fim YYYY-MM-DD'),
-})
 
 export const lunaTools = {
   get_available_slots: tool({
     description: 'Retorna horários disponíveis para um procedimento em uma data específica',
-    parameters: slotsParams,
-    execute: async ({ date, procedure_id }: z.infer<typeof slotsParams>) => {
+    inputSchema: zodSchema(z.object({
+      date: z.string().describe('Data no formato YYYY-MM-DD'),
+      procedure_id: z.string().uuid().describe('ID do procedimento'),
+    })),
+    execute: async ({ date, procedure_id }) => {
       const supabase = await createSupabaseServerClient()
 
       const { data: procedure } = await supabase
@@ -46,7 +20,6 @@ export const lunaTools = {
         .single()
       if (!procedure) return { error: 'Procedimento não encontrado' }
 
-      // 0 = Sunday, 1 = Monday, ...
       const dayOfWeek = new Date(`${date}T12:00:00`).getDay()
       const { data: wh } = await supabase
         .from('working_hours')
@@ -92,8 +65,11 @@ export const lunaTools = {
 
   get_bookings: tool({
     description: 'Retorna agendamentos em um período',
-    parameters: bookingsParams,
-    execute: async ({ from, to }: z.infer<typeof bookingsParams>) => {
+    inputSchema: zodSchema(z.object({
+      from: z.string().describe('Data início YYYY-MM-DD'),
+      to: z.string().describe('Data fim YYYY-MM-DD'),
+    })),
+    execute: async ({ from, to }) => {
       const supabase = await createSupabaseServerClient()
       const { data, error } = await supabase
         .from('bookings')
@@ -109,8 +85,12 @@ export const lunaTools = {
 
   create_booking: tool({
     description: 'Cria um agendamento para uma cliente. Confirme com a profissional antes de chamar.',
-    parameters: createBookingParams,
-    execute: async ({ client_id, procedure_id, start_time }: z.infer<typeof createBookingParams>) => {
+    inputSchema: zodSchema(z.object({
+      client_id: z.string().uuid().describe('ID da cliente'),
+      procedure_id: z.string().uuid().describe('ID do procedimento'),
+      start_time: z.string().describe('Horário de início no formato ISO 8601, ex: 2026-05-01T09:00:00'),
+    })),
+    execute: async ({ client_id, procedure_id, start_time }) => {
       const supabase = await createSupabaseServerClient()
 
       const { data: procedure } = await supabase
@@ -142,8 +122,10 @@ export const lunaTools = {
 
   cancel_booking: tool({
     description: 'Cancela um agendamento por ID. Confirme com a profissional antes de chamar.',
-    parameters: cancelBookingParams,
-    execute: async ({ booking_id }: z.infer<typeof cancelBookingParams>) => {
+    inputSchema: zodSchema(z.object({
+      booking_id: z.string().uuid().describe('ID do agendamento'),
+    })),
+    execute: async ({ booking_id }) => {
       const supabase = await createSupabaseServerClient()
       const { error } = await supabase
         .from('bookings')
@@ -156,8 +138,10 @@ export const lunaTools = {
 
   get_clients: tool({
     description: 'Busca clientes por nome ou telefone',
-    parameters: clientsParams,
-    execute: async ({ search }: z.infer<typeof clientsParams>) => {
+    inputSchema: zodSchema(z.object({
+      search: z.string().optional().describe('Texto para buscar por nome ou telefone (opcional)'),
+    })),
+    execute: async ({ search }) => {
       const supabase = await createSupabaseServerClient()
       let query = supabase
         .from('clients')
@@ -175,8 +159,11 @@ export const lunaTools = {
 
   get_financial_summary: tool({
     description: 'Retorna resumo financeiro (receita, despesas, lucro) de um período',
-    parameters: financialParams,
-    execute: async ({ from, to }: z.infer<typeof financialParams>) => {
+    inputSchema: zodSchema(z.object({
+      from: z.string().describe('Data início YYYY-MM-DD'),
+      to: z.string().describe('Data fim YYYY-MM-DD'),
+    })),
+    execute: async ({ from, to }) => {
       const supabase = await createSupabaseServerClient()
       const { data, error } = await supabase
         .from('transactions')
