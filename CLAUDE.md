@@ -55,7 +55,7 @@ Sistema de agendamento mobile-first para nail designer solo (Ayumi Nails / "Bell
 ### Schema real (projeto `xibcbjyhtvzlkgjbywru`)
 - `clients` → id, name, phone, email, notes, created_at, updated_at
 - `procedures` → id, name, duration (int, min), price (numeric), description, active (bool), created_at, updated_at
-- `studio_profile` → FK via `id` (não `user_id`) para auth.users
+- `studio_profile` → FK via `id` (não `user_id`) para auth.users | campos: phone, luna_whatsapp_number, luna_confirmation_enabled, luna_client_enabled
 - `bookings`, `working_hours`, `blocks`, `transactions`, `messages` — existem, verificar colunas antes de usar
 - **Antes de criar qualquer hook, verificar colunas reais via MCP Supabase**
 
@@ -165,14 +165,14 @@ src/
 2. Schema banco de dados ✅
 3. Schema Supabase aplicado ✅
 4. Google Auth OAuth + onboarding ✅
-5. Módulo de agendamento — slots + calendário ← PRÓXIMA
-6. Dashboard: Calendário visual ← PRÓXIMA
-7. Dashboard: Clientes ✅
-8. Dashboard: Serviços (procedures) ✅
-9. Dashboard: Luna chatbot IA
-10. Booking flow público
-11. Google Calendar (write)
-12. WhatsApp Luna (confirmação 24h)
+5. Disponibilidade (slots) + Calendário visual ✅
+6. Dashboard: Clientes ✅
+7. Dashboard: Serviços (procedures) ✅
+8. Dashboard: Financeiro ✅
+9. Luna — Infraestrutura DB + UI configuração ✅
+10. Dashboard: Luna chatbot IA ⏳ (aguarda API key Anthropic)
+11. Luna — WhatsApp infraestrutura ✅ (aguarda número para conectar)
+12. Google Calendar (write) ⏳
 
 ---
 

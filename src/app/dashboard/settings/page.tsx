@@ -118,9 +118,10 @@ export default function SettingsPage() {
 
   return (
     <div className="px-2 py-6 max-w-lg mx-auto">
-      <div className="flex items-center gap-2 mb-6">
+      <p className="text-xs font-medium uppercase tracking-widest text-stone-400">Horários</p>
+      <div className="flex items-center gap-2 mb-6 mt-2">
         <Clock className="w-4 h-4 text-rose-400" />
-        <h1 className="text-base font-semibold text-stone-800">Horários de expediente</h1>
+        <h1 className="mt-1 text-2xl font-semibold text-stone-800">Horários de expediente</h1>
       </div>
 
       <div className="space-y-3">

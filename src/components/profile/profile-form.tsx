@@ -22,6 +22,7 @@ type Props = {
   userId: string
   initialStudioName: string
   initialOwnerName: string
+  initialPhone: string
   initialLogoUrl: string | null
   googleAvatar: string | null
   googleName: string | null
@@ -32,6 +33,7 @@ export function ProfileForm({
   userId,
   initialStudioName,
   initialOwnerName,
+  initialPhone,
   initialLogoUrl,
   googleAvatar,
   googleName,
@@ -42,10 +44,19 @@ export function ProfileForm({
 
   const [studioName, setStudioName] = useState(initialStudioName)
   const [ownerName, setOwnerName] = useState(initialOwnerName)
+  const [phone, setPhone] = useState(initialPhone)
   const [logoUrl, setLogoUrl] = useState<string | null>(initialLogoUrl)
   const [uploadingLogo, setUploadingLogo] = useState(false)
   const [saving, setSaving] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState('')
+
+  function formatPhone(value: string) {
+    const digits = value.replace(/\D/g, '').slice(0, 11)
+    if (digits.length <= 10) {
+      return digits.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3').replace(/-$/, '')
+    }
+    return digits.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3').replace(/-$/, '')
+  }
 
   async function handleSave() {
     if (!studioName.trim()) { toast.error('Nome do studio é obrigatório'); return }
@@ -53,7 +64,7 @@ export function ProfileForm({
     setSaving(true)
     const { error } = await supabase
       .from('studio_profile')
-      .update({ studio_name: studioName.trim(), owner_name: ownerName.trim() })
+      .update({ studio_name: studioName.trim(), owner_name: ownerName.trim(), phone: phone.trim() || null })
       .eq('id', userId)
     setSaving(false)
     if (error) { toast.error('Erro ao salvar'); return }
@@ -159,6 +170,19 @@ export function ProfileForm({
               value={ownerName}
               onChange={(e) => setOwnerName(e.target.value)}
               className="w-full text-sm font-medium text-stone-800 bg-transparent outline-none border-b border-transparent focus:border-rose-200 pb-0.5 transition-colors"
+            />
+          </div>
+
+          {/* WhatsApp */}
+          <div className="px-4 py-3 border-b border-stone-50">
+            <label className="text-xs text-stone-400 block mb-1">WhatsApp <span className="normal-case">(opcional)</span></label>
+            <input
+              type="tel"
+              inputMode="numeric"
+              placeholder="(11) 99999-9999"
+              value={phone}
+              onChange={(e) => setPhone(formatPhone(e.target.value))}
+              className="w-full text-sm font-medium text-stone-800 bg-transparent outline-none border-b border-transparent focus:border-rose-200 pb-0.5 transition-colors placeholder:font-normal placeholder:text-stone-300"
             />
           </div>
 

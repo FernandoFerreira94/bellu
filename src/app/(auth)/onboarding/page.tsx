@@ -16,6 +16,7 @@ type Step = 1 | 2 | 3
 type FormData = {
   studio_name: string
   owner_name: string
+  phone: string
   specialty: Specialty | null
   logo_url: string | null
 }
@@ -42,9 +43,18 @@ export default function OnboardingPage() {
   const [form, setForm] = useState<FormData>({
     studio_name: '',
     owner_name: '',
+    phone: '',
     specialty: null,
     logo_url: null,
   })
+
+  function formatPhone(value: string) {
+    const digits = value.replace(/\D/g, '').slice(0, 11)
+    if (digits.length <= 10) {
+      return digits.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3').replace(/-$/, '')
+    }
+    return digits.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3').replace(/-$/, '')
+  }
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
 
   function handleBack() {
@@ -128,6 +138,7 @@ export default function OnboardingPage() {
         owner_name: form.owner_name,
         specialty: form.specialty,
         logo_url: form.logo_url,
+        phone: form.phone || null,
       }),
     })
 
@@ -190,6 +201,19 @@ export default function OnboardingPage() {
                 placeholder="Ex: Ayumi"
                 value={form.owner_name}
                 onChange={(e) => setForm((f) => ({ ...f, owner_name: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone" className="uppercase text-xs tracking-wider">
+                WhatsApp <span className="normal-case text-muted-foreground">(opcional)</span>
+              </Label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="(11) 99999-9999"
+                value={form.phone}
+                onChange={(e) => setForm((f) => ({ ...f, phone: formatPhone(e.target.value) }))}
+                inputMode="numeric"
               />
             </div>
           </div>

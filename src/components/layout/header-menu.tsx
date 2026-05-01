@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   LogOut, Calendar, Clock, Plug, Sparkles, TrendingUp,
-  CheckCircle2, XCircle, Camera, X, Pencil, Check, ChevronRight,
+  CheckCircle2, XCircle, Camera, X, Pencil, Check, ChevronRight, Bot,
 } from 'lucide-react'
 import { sb as supabase } from '@/lib/supabase-browser'
 import { useLunaUIStore } from '@/store/lunaUIStore'
@@ -208,6 +208,15 @@ export function HeaderMenu({ open, onClose, user, userGoogle }: Props) {
             >
               <Clock className="w-4 h-4 shrink-0 text-stone-400" />
               Horários de expediente
+            </Link>
+
+            <Link
+              href="/dashboard/luna"
+              onClick={onClose}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-stone-600 hover:bg-stone-50 hover:text-stone-800 transition-colors text-sm"
+            >
+              <Bot className="w-4 h-4 shrink-0 text-stone-400" />
+              Luna — Configurações
             </Link>
 
             <div className="flex items-center justify-between px-3 py-2.5">

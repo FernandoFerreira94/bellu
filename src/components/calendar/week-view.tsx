@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
@@ -15,8 +15,8 @@ const DOW_FULL     = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','S�
 type View = 'year' | 'month' | 'day'
 
 const HOUR_HEIGHT = 64   // px por hora
-const DAY_START   = 6
-const DAY_END     = 20
+const DAY_START   = 5
+const DAY_END     = 23
 
 function daysInMonth(y: number, m: number) { return new Date(y, m + 1, 0).getDate() }
 function sameDay(a: Date, b: Date) {
@@ -37,6 +37,17 @@ export function WeekView() {
   const [sheetIgnoreBookingId, setSheetIgnoreBookingId] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [bookingAction, setBookingAction] = useState<Booking | null>(null)
+
+  const stripRef        = useRef<HTMLDivElement>(null)
+  const selectedDayRef  = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (view !== 'day') return
+    const strip = stripRef.current
+    const el    = selectedDayRef.current
+    if (!strip || !el) return
+    strip.scrollTo({ left: el.offsetLeft - strip.clientWidth / 2 + el.clientWidth / 2, behavior: 'smooth' })
+  }, [view, year, month, day])
 
   const cancel = useCancelBooking()
 
@@ -119,7 +130,7 @@ export function WeekView() {
   // ── YEAR VIEW ──────────────────────────────────────────────────────────────
   function renderYear() {
     return (
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 grid-rows-4 gap-2 h-full">
         {MONTHS_FULL.map((mName, i) => {
           const isCurrent = year === today.getFullYear() && i === today.getMonth()
           const total     = daysInMonth(year, i)
@@ -128,31 +139,37 @@ export function WeekView() {
             return d.getFullYear() === year && d.getMonth() === i
           })
           const bookedDays = new Set(monthBookings.map(b => new Date(b.startTime).getDate()))
+          const bookingCount = monthBookings.length
 
           return (
             <button
               key={mName}
               onClick={() => { setMonth(i); setView('month') }}
-              className={`bg-white rounded-2xl border p-3 text-left transition-all hover:border-rose-200 hover:shadow-sm active:scale-95 ${
-                isCurrent ? 'border-rose-200 shadow-sm' : 'border-stone-100'
+              className={`flex flex-col bg-white rounded-2xl border p-3.5 text-left transition-all hover:border-rose-200 hover:shadow-sm active:scale-95 min-h-0 ${
+                isCurrent ? 'border-rose-300 shadow-sm bg-rose-50/30' : 'border-stone-100'
               }`}
             >
-              <p className={`text-xs font-semibold mb-2.5 ${isCurrent ? 'text-rose-500' : 'text-stone-400'}`}>
-                {MONTHS_SHORT[i]}
-              </p>
+              <div className="flex items-baseline justify-between mb-2">
+                <p className={`text-sm font-bold ${isCurrent ? 'text-rose-500' : 'text-stone-500'}`}>
+                  {MONTHS_SHORT[i]}
+                </p>
+                {bookingCount > 0 && (
+                  <span className="text-[10px] font-semibold text-rose-400">{bookingCount}</span>
+                )}
+              </div>
               {/* Dot grid — cada dot = 1 dia */}
-              <div className="flex flex-wrap gap-[3px]">
+              <div className="flex flex-wrap gap-[3.5px] flex-1 content-start">
                 {Array.from({ length: total }, (_, idx) => {
-                  const d       = idx + 1
-                  const isToday = year === today.getFullYear() && i === today.getMonth() && d === today.getDate()
+                  const d          = idx + 1
+                  const isToday    = year === today.getFullYear() && i === today.getMonth() && d === today.getDate()
                   const hasBooking = bookedDays.has(d)
                   return (
                     <span
                       key={d}
-                      className={`w-[7px] h-[7px] rounded-full ${
-                        isToday      ? 'bg-rose-400' :
-                        hasBooking   ? 'bg-rose-200' :
-                                       'bg-stone-100'
+                      className={`w-[8px] h-[8px] rounded-full ${
+                        isToday    ? 'bg-rose-400' :
+                        hasBooking ? 'bg-rose-200' :
+                                     'bg-stone-100'
                       }`}
                     />
                   )
@@ -180,7 +197,7 @@ export function WeekView() {
         {/* Header dias da semana */}
         <div className="grid grid-cols-7 bg-primary">
           {DOW_LABELS.map((l, i) => (
-            <div key={i} className="py-2.5 text-center text-[11px] font-semibold text-white tracking-wide">
+            <div key={i} className="py-3 text-center text-xs font-bold text-white tracking-widest">
               {l}
             </div>
           ))}
@@ -190,7 +207,7 @@ export function WeekView() {
         <div className="grid grid-cols-7">
           {cells.map((d, idx) => {
             if (d === null) {
-              return <div key={`e-${idx}`} className="aspect-square bg-stone-50/60" />
+              return <div key={`e-${idx}`} className="h-20 bg-stone-50/60" />
             }
             const date        = new Date(year, month, d)
             const isToday     = sameDay(date, today)
@@ -201,19 +218,19 @@ export function WeekView() {
               <button
                 key={`d-${d}`}
                 onClick={() => { setDay(d); setView('day') }}
-                className={`aspect-square flex flex-col items-center justify-center gap-0.5 border border-stone-50 transition-colors hover:bg-rose-50/50 ${
-                  isToday ? 'bg-rose-50' : ''
+                className={`h-20 flex flex-col items-center justify-center gap-1 border border-stone-50 transition-colors active:bg-rose-50/70 ${
+                  isToday ? 'bg-rose-50' : 'hover:bg-stone-50/80'
                 }`}
               >
-                <span className={`text-xs font-medium w-6 h-6 flex items-center justify-center rounded-full ${
-                  isToday  ? 'bg-rose-400 text-white ring-2 ring-rose-200' :
-                  isPast   ? 'text-stone-300' :
-                             'text-stone-700'
+                <span className={`text-sm font-semibold w-8 h-8 flex items-center justify-center rounded-full ${
+                  isToday ? 'bg-rose-400 text-white ring-2 ring-rose-200' :
+                  isPast  ? 'text-stone-300' :
+                            'text-stone-700'
                 }`}>
                   {d}
                 </span>
                 {dayBookings.length > 0 && (
-                  <span className={`text-[8px] font-bold px-1 rounded-full leading-tight ${
+                  <span className={`text-[10px] font-bold px-1.5 rounded-full leading-tight ${
                     isToday ? 'bg-rose-200 text-rose-700' : 'bg-rose-100 text-rose-500'
                   }`}>
                     {dayBookings.length}
@@ -235,21 +252,56 @@ export function WeekView() {
     const hours       = Array.from({ length: DAY_END - DAY_START }, (_, i) => DAY_START + i)
     const totalHeight = (DAY_END - DAY_START) * HOUR_HEIGHT
 
+    // Gera 30 dias antes e 30 depois — JS resolve rollover de mês automaticamente
+    const stripDays = Array.from({ length: 61 }, (_, i) => new Date(year, month, day - 30 + i))
+
     return (
-      <div className="bg-white rounded-2xl border border-stone-100 overflow-hidden">
-        {/* Day header */}
-        <div className={`flex items-center justify-between px-4 py-3 border-b border-stone-50 ${sameDay(currentDay, today) ? 'bg-primary/30' : ''}`}>
-          <span className="text-sm font-medium text-stone-700">
-            {DOW_FULL[currentDay.getDay()]}, {String(day).padStart(2,'0')} de {MONTHS_FULL[month]}
-          </span>
-          {!isPast && (
-            <button
-              onClick={() => openAdd(currentDay)}
-              className="flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-500 transition-colors font-medium"
-            >
-              <Plus className="w-3.5 h-3.5" /> Agendar
-            </button>
-          )}
+      <div className="relative bg-white rounded-2xl border border-stone-100 overflow-hidden">
+        {/* Cabeçalho: data completa */}
+        
+
+        {/* Strip horizontal de dias */}
+        <div
+          ref={stripRef}
+          className="flex overflow-x-auto scrollbar-hide border-b border-stone-100 px-1 py-2 gap-0.5"
+          style={{ scrollbarWidth: 'none' }}
+        >
+          {stripDays.map((d, idx) => {
+            const isSelected  = sameDay(d, currentDay)
+            const isDayToday  = sameDay(d, today)
+            const isDayPast   = d < today && !isDayToday
+            const isFirstMonth = d.getDate() === 1
+
+            return (
+              <div key={idx} className="flex flex-col items-center shrink-0 w-10">
+                {/* Label de mês na virada */}
+                <span className={`text-[9px] font-bold leading-none mb-0.5 ${isFirstMonth ? 'text-rose-400' : 'invisible'}`}>
+                  {MONTHS_SHORT[d.getMonth()]}
+                </span>
+                {/* DOW */}
+                <span className={`text-[10px] font-medium mb-1 ${
+                  isSelected  ? 'text-rose-500' :
+                  isDayPast   ? 'text-stone-300' :
+                                'text-stone-400'
+                }`}>
+                  {DOW_LABELS[d.getDay()]}
+                </span>
+                {/* Número */}
+                <button
+                  ref={isSelected ? selectedDayRef : null}
+                  onClick={() => { setYear(d.getFullYear()); setMonth(d.getMonth()); setDay(d.getDate()) }}
+                  className={`w-9 h-9 flex items-center justify-center rounded-full text-sm font-semibold transition-all ${
+                    isSelected  ? 'bg-rose-400 text-white shadow-sm' :
+                    isDayToday  ? 'ring-2 ring-rose-300 text-rose-500' :
+                    isDayPast   ? 'text-stone-300' :
+                                  'text-stone-700 active:bg-stone-100'
+                  }`}
+                >
+                  {d.getDate()}
+                </button>
+              </div>
+            )
+          })}
         </div>
 
         {isLoading ? (
@@ -264,14 +316,18 @@ export function WeekView() {
               {hours.map(h => (
                 <div
                   key={h}
-                  className="absolute w-full flex border-t border-stone-50"
+                  className="absolute w-full flex border-t border-stone-200"
                   style={{ top: `${(h - DAY_START) * HOUR_HEIGHT}px`, height: `${HOUR_HEIGHT}px` }}
                 >
-                  <span className="text-[10px] text-stone-500 px-2 pt-1 w-12 shrink-0 select-none font-medium">
+                  <span className="text-sm text-stone-500 px-2 pt-1 w-12 shrink-0 select-none font-medium">
                     {String(h).padStart(2,'0')}:00
                   </span>
                   {/* Meia hora */}
-                  <div className="absolute left-12 right-0 border-t border-stone-50/70" style={{ top: `${HOUR_HEIGHT / 2}px` }} />
+                  <div className="absolute left-0 right-0 flex items-start " style={{ top: `${HOUR_HEIGHT / 2}px` }}>
+                    <span className="text-[11px] text-stone-300 px-2 w-12 shrink-0 select-none leading-none pt-0.5">
+                      {String(h).padStart(2,'0')}:30
+                    </span>
+                  </div>
                   {/* Área clicável para agendar */}
                   {!isPast && (
                     <button
@@ -319,13 +375,23 @@ export function WeekView() {
             </div>
           </div>
         )}
+
+        {/* FAB — Agendar */}
+        {!isPast && (
+          <button
+            onClick={() => openAdd(currentDay)}
+            className="absolute bottom-2 right-2 flex items-center gap-2 bg-rose-400 hover:bg-rose-500 active:scale-95 text-white text-sm font-semibold px-4 py-4 rounded-full shadow-lg transition-all z-20"
+          >
+            <Plus className="w-4 h-4" /> 
+          </button>
+        )}
       </div>
     )
   }
 
   // ── SHELL ──────────────────────────────────────────────────────────────────
   return (
-    <div className="space-y-3">
+    <div className={view === 'year' ? 'flex flex-col gap-3 h-[calc(100dvh-7rem)]' : 'space-y-3'}>
 
       {/* Navegação */}
       <div className="bg-white rounded-2xl border border-stone-100 p-4 space-y-3">
@@ -355,7 +421,7 @@ export function WeekView() {
           <span className="text-sm font-medium text-stone-700">{periodLabel()}</span>
           <button
             onClick={next}
-            disabled={isPresent}
+            disabled={view === 'day' && isPresent}
             className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-stone-100 transition-colors disabled:opacity-30"
           >
             <ChevronRight className="w-4 h-4 text-stone-400" />
@@ -364,7 +430,7 @@ export function WeekView() {
       </div>
 
       {/* View content */}
-      {view === 'year'  && renderYear()}
+      {view === 'year'  && <div className="flex-1 min-h-0">{renderYear()}</div>}
       {view === 'month' && renderMonth()}
       {view === 'day'   && renderDay()}
 

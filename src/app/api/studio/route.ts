@@ -7,6 +7,7 @@ const studioSchema = z.object({
   owner_name: z.string().min(2, 'Mínimo 2 caracteres'),
   specialty: z.enum(['nail_designer', 'hair', 'makeup', 'waxing', 'massage', 'other']),
   logo_url: z.string().url().nullable().optional(),
+  phone: z.string().nullable().optional(),
 })
 
 export async function POST(request: Request) {
@@ -35,6 +36,7 @@ export async function POST(request: Request) {
       owner_name: parsed.data.owner_name,
       specialty: parsed.data.specialty,
       logo_url: parsed.data.logo_url ?? null,
+      phone: parsed.data.phone ?? null,
       onboarding_completed: true,
     })
 
