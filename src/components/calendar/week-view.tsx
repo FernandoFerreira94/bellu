@@ -43,6 +43,11 @@ export function WeekView() {
   const stripRef        = useRef<HTMLDivElement>(null)
   const selectedDayRef  = useRef<HTMLButtonElement>(null)
 
+  // GCal overlay — hook no topo do componente (Rules of Hooks)
+  const gcalDayStart = view === 'day' ? format(new Date(year, month, day), 'yyyy-MM-dd') + 'T00:00:00' : ''
+  const gcalDayEnd   = view === 'day' ? format(new Date(year, month, day), 'yyyy-MM-dd') + 'T23:59:59' : ''
+  const { data: gcalEvents = [] } = useGoogleCalendarEvents(gcalDayStart, gcalDayEnd)
+
   useEffect(() => {
     if (view !== 'day') return
     const strip = stripRef.current
@@ -251,11 +256,6 @@ export function WeekView() {
     const currentDay  = new Date(year, month, day)
     const isPast      = currentDay < today && !sameDay(currentDay, today)
     const dayBookings = bookingsForDate(currentDay)
-    
-    // GCal Overlay
-    const dayStartStr = format(currentDay, 'yyyy-MM-dd') + 'T00:00:00'
-    const dayEndStr = format(currentDay, 'yyyy-MM-dd') + 'T23:59:59'
-    const { data: gcalEvents = [] } = useGoogleCalendarEvents(dayStartStr, dayEndStr)
 
     const hours       = Array.from({ length: DAY_END - DAY_START }, (_, i) => DAY_START + i)
     const totalHeight = (DAY_END - DAY_START) * HOUR_HEIGHT
@@ -391,7 +391,7 @@ export function WeekView() {
                 const height = Math.max((endMin - startMin) * (HOUR_HEIGHT / 60), 20)
 
                 // Só renderiza se estiver dentro do range visível
-                if (top < 0 && top + height < 0) return null
+                if (top + height < 0) return null
                 if (top > totalHeight) return null
 
                 return (

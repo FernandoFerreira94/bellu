@@ -3,6 +3,12 @@ import { createSupabaseServerClient } from '@/lib/supabase-server'
 import { fetchGoogleCalendarEvents } from '@/lib/google-calendar-api'
 
 export async function POST(request: Request) {
+  // Verificar token do canal para autenticar requisição do Google
+  const channelToken = request.headers.get('x-goog-channel-token')
+  if (channelToken && channelToken !== process.env.GCAL_WEBHOOK_SECRET) {
+    return new NextResponse(null, { status: 200 }) // 200 para Google não retentar
+  }
+
   // Google envia headers, não body com eventos
   const resourceState = request.headers.get('x-goog-resource-state')
   if (resourceState === 'sync') {
