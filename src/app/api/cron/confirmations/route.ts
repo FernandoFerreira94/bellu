@@ -2,7 +2,7 @@ export const runtime = 'nodejs'
 
 import { NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
-import { sendConfirmationMessage } from '@/lib/luna-whatsapp'
+import { sendConfirmationMessage } from '@/lib/bellu-whatsapp'
 
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms))
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
 
   const supabase = await createSupabaseServerClient()
 
-  // 2. Verifica se Luna está habilitada
+  // 2. Verifica se Bellu está habilitada
   const { data: profile } = await supabase
     .from('studio_profile')
     .select('luna_confirmation_enabled')

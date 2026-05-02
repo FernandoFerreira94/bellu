@@ -13,7 +13,7 @@ function mapRow(r: Record<string, unknown>): Service {
     durationInMinutes: r.duration as number,
     price: Number(r.price),
     isActive: r.active as boolean,
-    lunaEnabled: r.luna_enabled as boolean,
+    belluEnabled: r.luna_enabled as boolean,
     color: null,
     createdAt: r.created_at as string,
     updatedAt: r.updated_at as string,
@@ -39,7 +39,7 @@ type ServiceInput = {
   description?: string | null
   durationInMinutes: number
   price: number
-  lunaEnabled: boolean
+  belluEnabled: boolean
 }
 
 export function useCreateService() {
@@ -52,7 +52,7 @@ export function useCreateService() {
         duration: input.durationInMinutes,
         price: input.price,
         active: true,
-        luna_enabled: input.lunaEnabled,
+        luna_enabled: input.belluEnabled,
       })
       if (error) throw error
     },
@@ -73,7 +73,7 @@ export function useUpdateService() {
         description: input.description ?? null,
         duration: input.durationInMinutes,
         price: input.price,
-        luna_enabled: input.lunaEnabled,
+        luna_enabled: input.belluEnabled,
       }).eq('id', id)
       if (error) throw error
     },

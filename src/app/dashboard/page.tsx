@@ -122,7 +122,7 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      {/* Luna CTA Card */}
+      {/* Bellu CTA Card */}
       <section className="p-5 rounded-2xl border-2 border-dashed border-primary/20 bg-primary/5 text-center space-y-3">
         <Sparkles className="w-5 h-5 text-primary mx-auto" />
         <p className="text-sm text-tercery px-4">
@@ -130,7 +130,7 @@ export default async function DashboardPage() {
         </p>
         <button className="inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-primary text-white text-sm font-medium rounded-full shadow-sm hover:bg-primary/90 transition-colors">
           <MessageCircleIcon />
-          Luna ✨
+          Bellu ✨
         </button>
       </section>
 

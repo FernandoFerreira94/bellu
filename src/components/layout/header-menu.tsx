@@ -10,7 +10,7 @@ import {
   CheckCircle2, XCircle, Camera, X, Pencil, Check, ChevronRight, Bot,
 } from 'lucide-react'
 import { sb as supabase } from '@/lib/supabase-browser'
-import { useLunaUIStore } from '@/store/lunaUIStore'
+import { useBelluUIStore } from '@/store/belluUIStore'
 
 type UserMeta = {
   avatar_url?: string
@@ -28,7 +28,7 @@ type Props = {
 
 export function HeaderMenu({ open, onClose, user, userGoogle }: Props) {
   const router = useRouter()
-  const setSheetOpen = useLunaUIStore((s) => s.setSheetOpen)
+  const setSheetOpen = useBelluUIStore((s) => s.setSheetOpen)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [editingField, setEditingField] = useState<'studio_name' | 'owner_name' | null>(null)
@@ -211,12 +211,12 @@ export function HeaderMenu({ open, onClose, user, userGoogle }: Props) {
             </Link>
 
             <Link
-              href="/dashboard/luna"
+              href="/dashboard/bellu"
               onClick={onClose}
               className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-stone-600 hover:bg-stone-50 hover:text-stone-800 transition-colors text-sm"
             >
               <Bot className="w-4 h-4 shrink-0 text-stone-400" />
-              Luna — Configurações
+              Bellu — Configurações
             </Link>
 
             <div className="flex items-center justify-between px-3 py-2.5">
@@ -249,7 +249,7 @@ export function HeaderMenu({ open, onClose, user, userGoogle }: Props) {
               className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-stone-600 hover:bg-stone-50 hover:text-stone-800 transition-colors text-sm"
             >
               <Sparkles className="w-4 h-4 shrink-0 text-rose-300" />
-              Luna ✨
+              Bellu ✨
             </button>
 
             <button

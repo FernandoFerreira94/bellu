@@ -2,7 +2,7 @@ export const runtime = 'nodejs'
 
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { processIncomingMessage } from '@/lib/luna-whatsapp'
+import { processIncomingMessage } from '@/lib/bellu-whatsapp'
 
 const bodySchema = z.object({
   from: z.string(),

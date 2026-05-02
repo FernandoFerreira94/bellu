@@ -30,7 +30,7 @@ export function ServiceSheet({ open, onOpenChange, mode, service }: Props) {
   const [priceCents, setPriceCents] = useState(0)
   const [duration, setDuration] = useState('')
   const [confirmDelete, setConfirmDelete] = useState(false)
-  const [lunaEnabled, setLunaEnabled] = useState(true)
+  const [belluEnabled, setBelluEnabled] = useState(true)
 
   const create = useCreateService()
   const update = useUpdateService()
@@ -43,13 +43,13 @@ export function ServiceSheet({ open, onOpenChange, mode, service }: Props) {
       setDescription(service.description ?? '')
       setPriceCents(Math.round(service.price * 100))
       setDuration(service.durationInMinutes.toString())
-      setLunaEnabled(service.lunaEnabled ?? true)
+      setBelluEnabled(service.belluEnabled ?? true)
     } else {
       setName('')
       setDescription('')
       setPriceCents(0)
       setDuration('')
-      setLunaEnabled(true)
+      setBelluEnabled(true)
     }
   }, [open, mode, service])
 
@@ -71,7 +71,7 @@ export function ServiceSheet({ open, onOpenChange, mode, service }: Props) {
       description: description.trim() || null,
       price: priceCents / 100,
       durationInMinutes: parseInt(duration),
-      lunaEnabled,
+      belluEnabled,
     }
     if (mode === 'add') {
       await create.mutateAsync(input)
@@ -158,15 +158,15 @@ export function ServiceSheet({ open, onOpenChange, mode, service }: Props) {
             </div>
           </div>
 
-          {/* Luna */}
+          {/* Bellu */}
           <div className="flex items-center justify-between px-1 py-1">
             <Label className="text-xs text-stone-500 flex items-center gap-2">
               <Sparkles className="w-3.5 h-3.5 text-rose-300" />
-              Luna pode oferecer este serviço
+              Bellu pode oferecer este serviço
             </Label>
             <Switch
-              checked={lunaEnabled}
-              onCheckedChange={setLunaEnabled}
+              checked={belluEnabled}
+              onCheckedChange={setBelluEnabled}
             />
           </div>
 

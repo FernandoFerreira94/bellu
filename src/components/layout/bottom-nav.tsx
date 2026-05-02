@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Calendar, Users, Sparkles } from "lucide-react";
-import { useLunaUIStore } from "@/store/lunaUIStore";
+import { useBelluUIStore } from "@/store/belluUIStore";
 
 export function BottomNav() {
   const pathname = usePathname();
-  const setSheetOpen = useLunaUIStore((s) => s.setSheetOpen);
+  const setSheetOpen = useBelluUIStore((s) => s.setSheetOpen);
 
   const navItems = [
     { href: "/dashboard", label: "Início", icon: Home, match: "/dashboard" },
@@ -39,13 +39,13 @@ export function BottomNav() {
           );
         })}
 
-        {/* Luna — abre Sheet */}
+        {/* Bellu — abre Sheet */}
         <button
           onClick={() => setSheetOpen(true)}
           className="flex flex-col items-center justify-center gap-1 w-full h-full transition-colors text-stone-400 hover:text-rose-400"
         >
           <Sparkles className="w-5 h-5" strokeWidth={2} />
-          <span className="text-[10px] font-medium">Luna</span>
+          <span className="text-[10px] font-medium">Bellu</span>
         </button>
       </div>
     </nav>

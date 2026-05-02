@@ -1,10 +1,10 @@
 export type CalendarView = "day" | "week" | "month" | "agenda";
 
 export type CalendarEventStatus = "confirmed" | "tentative" | "cancelled";
-export type CalendarEventSource = "google" | "manual" | "whatsapp" | "luna";
+export type CalendarEventSource = "google" | "manual" | "whatsapp" | "bellu";
 export type FinanceEntryType = "income" | "expense";
 export type WhatsAppConnectionStatus = "disconnected" | "pairing" | "connected";
-export type LunaMessageRole = "assistant" | "user" | "system";
+export type BelluMessageRole = "assistant" | "user" | "system";
 
 export type Service = {
   id: string;
@@ -13,7 +13,7 @@ export type Service = {
   durationInMinutes: number;
   price: number;
   isActive: boolean;
-  lunaEnabled: boolean;
+  belluEnabled: boolean;
   color: string | null;
   createdAt: string;
   updatedAt: string;
@@ -111,16 +111,16 @@ export type Settings = {
   };
 };
 
-export type LunaMessage = {
+export type BelluMessage = {
   id: string;
-  role: LunaMessageRole;
+  role: BelluMessageRole;
   content: string;
   createdAt: string;
 };
 
-export type LunaChatState = {
+export type BelluChatState = {
   isOpen: boolean;
-  messages: LunaMessage[];
+  messages: BelluMessage[];
   isLoading: boolean;
 };
 
