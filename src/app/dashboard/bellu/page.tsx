@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch'
 import { Input } from '@/components/ui/input'
 import { Bot } from 'lucide-react'
 
-type LunaConfig = {
+type BelluConfig = {
   luna_whatsapp_number: string
   luna_confirmation_enabled: boolean
   luna_client_enabled: boolean
@@ -21,15 +21,15 @@ function formatPhone(value: string) {
   return digits.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3').replace(/-$/, '')
 }
 
-export default function LunaSettingsPage() {
-  const [luna, setLuna] = useState<LunaConfig>({
+export default function BelluSettingsPage() {
+  const [bellu, setBellu] = useState<BelluConfig>({
     luna_whatsapp_number: '',
     luna_confirmation_enabled: false,
     luna_client_enabled: false,
   })
-  const [lunaLoaded, setLunaLoaded] = useState(false)
-  const [savingLuna, setSavingLuna] = useState(false)
-  const lunaNumberRef = useRef<HTMLInputElement>(null)
+  const [belluLoaded, setBelluLoaded] = useState(false)
+  const [savingBellu, setSavingBellu] = useState(false)
+  const belluNumberRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     sb
@@ -38,26 +38,26 @@ export default function LunaSettingsPage() {
       .single()
       .then(({ data }) => {
         if (data) {
-          setLuna({
+          setBellu({
             luna_whatsapp_number: data.luna_whatsapp_number ?? '',
             luna_confirmation_enabled: data.luna_confirmation_enabled ?? false,
             luna_client_enabled: data.luna_client_enabled ?? false,
           })
         }
-        setLunaLoaded(true)
+        setBelluLoaded(true)
       })
   }, [])
 
-  async function saveLuna(patch: Partial<LunaConfig>) {
-    const next = { ...luna, ...patch }
+  async function saveBellu(patch: Partial<BelluConfig>) {
+    const next = { ...bellu, ...patch }
     const anyEnabled = next.luna_confirmation_enabled || next.luna_client_enabled
     if (anyEnabled && !next.luna_whatsapp_number.trim()) {
-      toast.error('Informe o número do bot Luna antes de ativar')
-      lunaNumberRef.current?.focus()
+      toast.error('Informe o número do bot Bellu antes de ativar')
+      belluNumberRef.current?.focus()
       return
     }
-    setSavingLuna(true)
-    setLuna(next)
+    setSavingBellu(true)
+    setBellu(next)
     const { error } = await sb
       .from('studio_profile')
       .update({
@@ -65,12 +65,12 @@ export default function LunaSettingsPage() {
         luna_confirmation_enabled: next.luna_confirmation_enabled,
         luna_client_enabled: next.luna_client_enabled,
       })
-    setSavingLuna(false)
+    setSavingBellu(false)
     if (error) {
-      toast.error('Erro ao salvar configurações da Luna')
-      setLuna(luna)
+      toast.error('Erro ao salvar configurações da Bellu')
+      setBellu(bellu)
     } else {
-      toast.success('Configurações da Luna salvas!')
+      toast.success('Configurações da Bellu salvas!')
     }
   }
 
@@ -79,61 +79,61 @@ export default function LunaSettingsPage() {
         <p className="text-xs font-medium uppercase tracking-widest text-stone-400">Inteligência Artificial</p>
       <div className="flex items-center gap-2 mb-6 mt-2">
         <Bot className=" text-rose-400" />
-        <h1 className="mt-1 text-2xl font-semibold text-stone-800">Configurações da Luna</h1>
+        <h1 className="mt-1 text-2xl font-semibold text-stone-800">Configurações da Bellu</h1>
       </div>
 
       <div className="space-y-3">
         {/* Número do bot */}
         <div className="px-4 py-3 rounded-2xl border border-stone-200 bg-white space-y-2">
           <label className="text-xs text-stone-400 font-medium uppercase tracking-widest">
-            Número do bot Luna
+            Número do bot Bellu
           </label>
           <Input
-            ref={lunaNumberRef}
+            ref={belluNumberRef}
             type="tel"
             inputMode="numeric"
             placeholder="(11) 99999-9999"
-            value={luna.luna_whatsapp_number}
+            value={bellu.luna_whatsapp_number}
             onChange={(e) =>
-              setLuna((prev) => ({ ...prev, luna_whatsapp_number: formatPhone(e.target.value) }))
+              setBellu((prev) => ({ ...prev, luna_whatsapp_number: formatPhone(e.target.value) }))
             }
-            onBlur={() => saveLuna({})}
+            onBlur={() => saveBellu({})}
             className="border-stone-200 focus-visible:ring-stone-300 text-sm"
-            disabled={!lunaLoaded}
+            disabled={!belluLoaded}
           />
         </div>
 
         {/* Confirmação 24h */}
         <div
           className={`flex items-center gap-4 px-4 py-3 rounded-2xl border transition-colors ${
-            luna.luna_confirmation_enabled
+            bellu.luna_confirmation_enabled
               ? 'border-stone-200 bg-white'
               : 'border-stone-100 bg-stone-50'
           }`}
         >
           <Switch
-            checked={luna.luna_confirmation_enabled}
-            onCheckedChange={(v) => saveLuna({ luna_confirmation_enabled: v })}
-            disabled={savingLuna || !lunaLoaded}
+            checked={bellu.luna_confirmation_enabled}
+            onCheckedChange={(v) => saveBellu({ luna_confirmation_enabled: v })}
+            disabled={savingBellu || !belluLoaded}
           />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-stone-700">Confirmação 24h</p>
-            <p className="text-xs text-stone-400">Luna envia lembrete 24h antes do agendamento</p>
+            <p className="text-xs text-stone-400">Bellu envia lembrete 24h antes do agendamento</p>
           </div>
         </div>
 
         {/* Modo Cliente Autônomo */}
         <div
           className={`flex items-center gap-4 px-4 py-3 rounded-2xl border transition-colors ${
-            luna.luna_client_enabled
+            bellu.luna_client_enabled
               ? 'border-stone-200 bg-white'
               : 'border-stone-100 bg-stone-50'
           }`}
         >
           <Switch
-            checked={luna.luna_client_enabled}
-            onCheckedChange={(v) => saveLuna({ luna_client_enabled: v })}
-            disabled={savingLuna || !lunaLoaded}
+            checked={bellu.luna_client_enabled}
+            onCheckedChange={(v) => saveBellu({ luna_client_enabled: v })}
+            disabled={savingBellu || !belluLoaded}
           />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-stone-700">Modo Cliente Autônomo</p>

@@ -2,18 +2,18 @@
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { useLunaUIStore } from '@/store/lunaUIStore'
+import { useBelluUIStore } from '@/store/belluUIStore'
 
-export function LunaWidget() {
-  const isWidgetOpen = useLunaUIStore((state) => state.isWidgetOpen)
-  const setWidgetOpen = useLunaUIStore((state) => state.setWidgetOpen)
+export function BelluWidget() {
+  const isWidgetOpen = useBelluUIStore((state) => state.isWidgetOpen)
+  const setWidgetOpen = useBelluUIStore((state) => state.setWidgetOpen)
 
   return (
     <div className="fixed bottom-4 right-4 z-50 sm:bottom-6 sm:right-6">
       {isWidgetOpen && (
         <Card className="w-[min(22rem,calc(100vw-2rem))] border-stone-200/80 shadow-xl">
           <CardHeader className="flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-base text-stone-900">Luna IA</CardTitle>
+            <CardTitle className="text-base text-stone-900">Bellu IA</CardTitle>
             <Button
               type="button"
               variant="ghost"

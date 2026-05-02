@@ -1,4 +1,4 @@
-// src/components/luna/luna-sheet.tsx
+// src/components/bellu/BelluSheet.tsx
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { useLunaUIStore } from '@/store/lunaUIStore'
+import { useBelluUIStore } from '@/store/belluUIStore'
 
 const QUICK_PROMPTS = [
   'Horários disponíveis esta semana',
@@ -20,14 +20,14 @@ const QUICK_PROMPTS = [
   'Quero agendar uma cliente',
 ]
 
-export function LunaSheet() {
+export function BelluSheet() {
   const { isSheetOpen, setSheetOpen, messages: stored, setMessages, resetChat } =
-    useLunaUIStore()
+    useBelluUIStore()
   const bottomRef = useRef<HTMLDivElement>(null)
   const [input, setInput] = useState('')
 
   const { messages, sendMessage, setMessages: setChatMessages, status } = useChat({
-    transport: new DefaultChatTransport({ api: '/api/luna' }),
+    transport: new DefaultChatTransport({ api: '/api/bellu' }),
     messages: stored,
     onFinish: () => {
       setMessages(messages)
@@ -75,7 +75,7 @@ export function LunaSheet() {
         <div className="flex items-center justify-between px-5 py-3 border-b border-stone-100 shrink-0">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-rose-400" />
-            <span className="text-sm font-semibold text-stone-800">Luna</span>
+            <span className="text-sm font-semibold text-stone-800">Bellu</span>
           </div>
           <div className="flex items-center gap-1">
             <Button
@@ -157,7 +157,7 @@ export function LunaSheet() {
               {isLoading && (
                 <div className="flex justify-start">
                   <span className="text-xs text-stone-400 bg-stone-100 px-3 py-1.5 rounded-full animate-pulse">
-                    Luna está digitando...
+                    Bellu está digitando...
                   </span>
                 </div>
               )}
@@ -174,7 +174,7 @@ export function LunaSheet() {
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Fale com a Luna..."
+            placeholder="Fale com a Bellu..."
             rows={1}
             disabled={isLoading}
             onKeyDown={(e) => {
