@@ -64,21 +64,28 @@ export function useCreateBooking() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (input: CreateBookingInput) => {
-      const { error } = await sb.from('bookings').insert({
-        client_id: input.clientId,
-        procedure_id: input.procedureId,
-        start_time: input.startTime.toISOString(),
-        end_time: input.endTime.toISOString(),
-        notes: input.notes ?? null,
-        status: 'confirmed',
+      const res = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          clientId: input.clientId,
+          procedureId: input.procedureId,
+          startTime: input.startTime.toISOString(),
+          endTime: input.endTime.toISOString(),
+          notes: input.notes ?? null,
+        }),
       })
-      if (error) throw error
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Erro ao criar agendamento')
+      }
+      return res.json()
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['bookings'] })
       toast.success('Agendamento criado!')
     },
-    onError: () => toast.error('Erro ao criar agendamento'),
+    onError: (err: Error) => toast.error(err.message),
   })
 }
 
@@ -86,13 +93,21 @@ export function useCancelBooking() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await sb.from('bookings').update({ status: 'cancelled' }).eq('id', id)
-      if (error) throw error
+      const res = await fetch('/api/bookings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status: 'cancelled' }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || 'Erro ao cancelar agendamento')
+      }
+      return res.json()
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['bookings'] })
       toast.success('Agendamento cancelado')
     },
-    onError: () => toast.error('Erro ao cancelar'),
+    onError: (err: Error) => toast.error(err.message),
   })
 }
