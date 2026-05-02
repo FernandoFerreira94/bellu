@@ -5,6 +5,7 @@ import { BelluSheet } from "@/components/bellu/BelluSheet";
 import { UserMenu } from "@/components/layout/user-menu";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import Header from "@/components/layout/header";
+import { SyncIndicator } from "@/components/sync/SyncIndicator";
 
 type DashboardLayoutProps = {
   children: ReactNode;
@@ -33,6 +34,7 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
       </DashboardShell>
 
       <BelluSheet />
+      <SyncIndicator />
     </>
   );
 }
