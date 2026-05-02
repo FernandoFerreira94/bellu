@@ -1,14 +1,23 @@
 // src/app/auth/google-calendar/callback/route.ts
 import { NextResponse } from 'next/server'
+import { cookies } from 'next/headers'
 import { saveGoogleTokens } from '@/lib/google-token'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
+  const state = searchParams.get('state')
   const error = searchParams.get('error')
 
   if (error || !code) {
+    return NextResponse.redirect(`${origin}/dashboard/settings?gcal=error`)
+  }
+
+  // Validar state (CSRF)
+  const cookieStore = await cookies()
+  const storedState = cookieStore.get('gcal_oauth_state')?.value
+  if (!storedState || storedState !== state) {
     return NextResponse.redirect(`${origin}/dashboard/settings?gcal=error`)
   }
 
@@ -47,5 +56,8 @@ export async function GET(request: Request) {
     headers: { 'x-import-secret': process.env.CRON_SECRET! },
   }).catch(() => {})
 
-  return NextResponse.redirect(`${origin}/dashboard/settings?gcal=connected`)
+  const response = NextResponse.redirect(`${origin}/dashboard/settings?gcal=connected`)
+  // Limpar cookie de state
+  response.cookies.delete('gcal_oauth_state')
+  return response
 }

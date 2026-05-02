@@ -18,13 +18,16 @@ export function GcalToast() {
       toast.success('Google Calendar conectado!')
       setSync(true)
 
+      let done = false
+
       // Polling: verifica quando importação terminar
       const interval = setInterval(async () => {
         try {
           const res = await fetch('/api/google-calendar/import-status')
           if (!res.ok) return
-          const { done } = await res.json()
-          if (done) {
+          const json = await res.json()
+          if (json.done) {
+            done = true
             setSync(false)
             clearInterval(interval)
             toast.success('Bellu analisou sua agenda! Veja o chat.')
@@ -36,10 +39,18 @@ export function GcalToast() {
       }, 3000)
 
       // Timeout máximo de 2 minutos
-      setTimeout(() => {
-        clearInterval(interval)
-        setSync(false)
+      const timeout = setTimeout(() => {
+        if (!done) {
+          clearInterval(interval)
+          setSync(false)
+        }
       }, 120_000)
+
+      return () => {
+        clearInterval(interval)
+        clearTimeout(timeout)
+        setSync(false)
+      }
 
     } else if (gcal === 'error') {
       toast.error('Erro ao conectar Google Calendar. Tente novamente.')

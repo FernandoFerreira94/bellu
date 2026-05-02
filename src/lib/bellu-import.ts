@@ -32,6 +32,7 @@ export type ImportSummary = {
   personalEventsSaved: number
   pendingClients: string[]
   pendingProcedures: string[]
+  aiError?: boolean
 }
 
 export async function runInitialImport(userId: string): Promise<ImportSummary> {
@@ -72,10 +73,14 @@ export async function runInitialImport(userId: string): Promise<ImportSummary> {
 
   if (!eventsText) return summary
 
-  const { object } = await generateObject({
-    model: anthropic('claude-sonnet-4-6'),
-    schema: ImportResultSchema,
-    prompt: `Você é um assistente analisando o Google Calendar de uma nail designer chamada Bellu.
+  type ImportResult = { bookings: Array<{ clientName: string; procedureTitle: string; startTime: string; endTime: string; googleEventId: string }>; personalEvents: Array<{ googleEventId: string; title: string; startTime: string; endTime: string }> }
+  let object: ImportResult
+
+  try {
+    const result = await generateObject({
+      model: anthropic('claude-sonnet-4-6'),
+      schema: ImportResultSchema,
+      prompt: `Você é um assistente analisando o Google Calendar de uma nail designer chamada Bellu.
 
 Procedimentos já cadastrados no sistema:
 ${proceduresList || '(nenhum ainda)'}
@@ -90,22 +95,29 @@ Tarefa:
 4. Se não conseguir identificar claramente: coloque em personalEvents
 
 Retorne o JSON estruturado.`,
-  })
+    })
+    object = result.object
+  } catch (err) {
+    console.error('[Bellu Import] Falha na análise IA:', err)
+    // Retornar summary parcial com flag de erro para o polling identificar
+    return { ...summary, aiError: true } as ImportSummary
+  }
 
-  // Salvar eventos pessoais
-  for (const ev of object.personalEvents) {
-    await supabase.from('google_calendar_events').upsert(
-      {
-        user_id: userId,
-        google_event_id: ev.googleEventId,
-        title: ev.title,
-        start_time: ev.startTime,
-        end_time: ev.endTime,
-        is_personal: true,
-      },
-      { onConflict: 'user_id,google_event_id' },
-    )
-    summary.personalEventsSaved++
+  // Salvar eventos pessoais em batch
+  if (object.personalEvents.length > 0) {
+    const personalRows = object.personalEvents.map((ev: { googleEventId: string; title: string; startTime: string; endTime: string }) => ({
+      user_id: userId,
+      google_event_id: ev.googleEventId,
+      title: ev.title,
+      start_time: ev.startTime,
+      end_time: ev.endTime,
+      is_personal: true,
+    }))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase as any)
+      .from('google_calendar_events')
+      .upsert(personalRows, { onConflict: 'user_id,google_event_id' })
+    summary.personalEventsSaved = object.personalEvents.length
   }
 
   // Processar bookings

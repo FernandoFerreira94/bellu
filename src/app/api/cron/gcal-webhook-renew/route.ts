@@ -28,12 +28,12 @@ export async function GET(request: Request) {
 
   const { data: profile } = await supabase
     .from('studio_profile')
-    .select('gcal_channel_id')
+    .select('gcal_channel_id, gcal_resource_id')
     .eq('id', tokenRow.user_id)
     .single()
 
-  // Parar canal antigo silenciosamente
-  if (profile?.gcal_channel_id) {
+  // Parar canal antigo silenciosamente usando resourceId correto
+  if (profile?.gcal_channel_id && profile?.gcal_resource_id) {
     try {
       await fetch(`${GCAL_BASE}/channels/stop`, {
         method: 'POST',
@@ -43,7 +43,7 @@ export async function GET(request: Request) {
         },
         body: JSON.stringify({
           id: profile.gcal_channel_id,
-          resourceId: profile.gcal_channel_id,
+          resourceId: profile.gcal_resource_id,
         }),
       })
     } catch {
@@ -58,11 +58,12 @@ export async function GET(request: Request) {
     const result = await registerGCalWebhook({ channelId, callbackUrl })
     if (!result) return NextResponse.json({ error: 'failed to register webhook' }, { status: 500 })
 
-    // Persistir novo channelId e expiração
+    // Persistir novo channelId, resourceId e expiração
     await supabase
       .from('studio_profile')
       .update({
         gcal_channel_id: channelId,
+        gcal_resource_id: result.resourceId,
         gcal_channel_expiration: result.expiration,
       })
       .eq('id', tokenRow.user_id)

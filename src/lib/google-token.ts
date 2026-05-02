@@ -3,6 +3,9 @@ import { createSupabaseServerClient } from '@/lib/supabase-server'
 
 const GOOGLE_TOKEN_URL = 'https://oauth2.googleapis.com/token'
 
+// Lock para evitar race condition no refresh de token
+let _refreshInProgress: Promise<void> | null = null
+
 export async function getGoogleTokens(): Promise<{
   access_token: string
   refresh_token: string | null
@@ -59,25 +62,45 @@ export async function getValidAccessToken(): Promise<string | null> {
   if (!isExpired) return tokens.access_token
   if (!tokens.refresh_token) return null
 
-  const res = await fetch(GOOGLE_TOKEN_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'refresh_token',
+  // Módulo-level lock: evita race condition se múltiplas requests chegam com token expirado
+  if (_refreshInProgress) {
+    await _refreshInProgress
+    return (await getGoogleTokens())?.access_token ?? null
+  }
+
+  let resolveRefresh!: () => void
+  _refreshInProgress = new Promise((resolve) => { resolveRefresh = resolve })
+
+  try {
+    const res = await fetch(GOOGLE_TOKEN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: tokens.refresh_token,
+        client_id: process.env.GOOGLE_CLIENT_ID!,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+      }),
+    })
+
+    if (!res.ok) {
+      console.error('[GCal Token] Refresh falhou:', res.status)
+      return null
+    }
+
+    const data = await res.json()
+    await saveGoogleTokens({
+      access_token: data.access_token,
       refresh_token: tokens.refresh_token,
-      client_id: process.env.GOOGLE_CLIENT_ID!,
-      client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-  })
+      expires_in: data.expires_in,
+    })
 
-  if (!res.ok) return null
-
-  const data = await res.json()
-  await saveGoogleTokens({
-    access_token: data.access_token,
-    refresh_token: tokens.refresh_token,
-    expires_in: data.expires_in,
-  })
-
-  return data.access_token
+    return data.access_token as string
+  } catch (err) {
+    console.error('[GCal Token] Erro no refresh:', err)
+    return null
+  } finally {
+    _refreshInProgress = null
+    resolveRefresh()
+  }
 }

@@ -35,15 +35,28 @@ export async function POST(request: Request) {
   try {
     const events = await fetchGoogleCalendarEvents({ timeMin, timeMax, maxResults: 100 })
 
+    // Buscar registros existentes para preservar is_personal
+    const eventIds = events.map((e) => e.id)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: existing } = await (supabase as any)
+      .from('google_calendar_events')
+      .select('google_event_id, is_personal')
+      .in('google_event_id', eventIds) as { data: { google_event_id: string; is_personal: boolean }[] | null }
+
+    const existingMap = new Map((existing ?? []).map((r) => [r.google_event_id, r.is_personal]))
+
     for (const ev of events) {
       if (!ev.start.dateTime) continue // eventos de dia inteiro — ignorar
-      await supabase.from('google_calendar_events').upsert({
+      // Preservar is_personal se já existe (bookings espelhados = false)
+      const isPersonal = existingMap.has(ev.id) ? existingMap.get(ev.id)! : true
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase as any).from('google_calendar_events').upsert({
         user_id: tokenRow.user_id,
         google_event_id: ev.id,
         title: ev.summary ?? 'Sem título',
         start_time: ev.start.dateTime,
         end_time: ev.end.dateTime ?? ev.start.dateTime,
-        is_personal: true, // webhook só traz eventos externos
+        is_personal: isPersonal,
       }, { onConflict: 'user_id,google_event_id' })
     }
   } catch (err) {

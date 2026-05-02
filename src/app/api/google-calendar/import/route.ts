@@ -8,24 +8,35 @@ export async function POST(request: Request) {
   const isInternalCall = secret === process.env.CRON_SECRET
 
   const supabase = await createSupabaseServerClient()
-  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user && !isInternalCall) {
-    return new NextResponse('Unauthorized', { status: 401 })
-  }
-  if (!user) {
-    return new NextResponse('No authenticated user', { status: 400 })
+  let userId: string | null = null
+
+  if (isInternalCall) {
+    // Chamada interna (do callback OAuth): buscar userId pelo token salvo
+    const { data: tokenRow } = await supabase
+      .from('google_tokens')
+      .select('user_id')
+      .maybeSingle()
+    userId = tokenRow?.user_id ?? null
+  } else {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return new NextResponse('Unauthorized', { status: 401 })
+    userId = user.id
   }
 
-  const userId = user.id
+  if (!userId) {
+    return new NextResponse('No user found', { status: 400 })
+  }
+
+  const uid = userId
 
   // Fire and forget — responde 202 imediatamente
-  runInitialImport(userId)
+  runInitialImport(uid)
     .then(async (summary) => {
       await supabase
         .from('studio_profile')
         .update({ pending_import_summary: JSON.stringify(summary) })
-        .eq('id', userId)
+        .eq('id', uid)
     })
     .catch(console.error)
 

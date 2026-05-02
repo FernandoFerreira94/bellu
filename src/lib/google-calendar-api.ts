@@ -73,7 +73,7 @@ export async function updateGCalEvent(params: {
   const token = await getValidAccessToken()
   if (!token) return
 
-  await fetch(`${GCAL_BASE}/calendars/primary/events/${params.eventId}`, {
+  const res = await fetch(`${GCAL_BASE}/calendars/primary/events/${params.eventId}`, {
     method: 'PATCH',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -85,22 +85,31 @@ export async function updateGCalEvent(params: {
       end: { dateTime: params.end, timeZone: 'America/Sao_Paulo' },
     }),
   })
+
+  if (!res.ok) {
+    console.error(`[GCal] updateGCalEvent falhou: ${res.status} ${params.eventId}`)
+  }
 }
 
 export async function deleteGCalEvent(eventId: string): Promise<void> {
   const token = await getValidAccessToken()
   if (!token) return
 
-  await fetch(`${GCAL_BASE}/calendars/primary/events/${eventId}`, {
+  const res = await fetch(`${GCAL_BASE}/calendars/primary/events/${eventId}`, {
     method: 'DELETE',
     headers: { Authorization: `Bearer ${token}` },
   })
+
+  if (!res.ok && res.status !== 410) {
+    // 410 Gone = evento já deletado no Google — ignorar
+    console.error(`[GCal] deleteGCalEvent falhou: ${res.status} ${eventId}`)
+  }
 }
 
 export async function registerGCalWebhook(params: {
   channelId: string
   callbackUrl: string
-}): Promise<{ expiration: string } | null> {
+}): Promise<{ expiration: string; resourceId: string } | null> {
   const token = await getValidAccessToken()
   if (!token) return null
 
@@ -119,5 +128,8 @@ export async function registerGCalWebhook(params: {
 
   if (!res.ok) return null
   const data = await res.json()
-  return { expiration: data.expiration }
+  return {
+    expiration: data.expiration as string,
+    resourceId: (res.headers.get('x-goog-resource-id') ?? (data as Record<string, string>).resourceId ?? '') as string,
+  }
 }
