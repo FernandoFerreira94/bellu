@@ -3,11 +3,11 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  LogOut, Calendar, Clock, Plug, Sparkles, TrendingUp,
-  CheckCircle2, XCircle, Camera, X, Pencil, Check, ChevronRight, Bot,
+  LogOut, Calendar, Clock, CalendarDays, Sparkles, TrendingUp,
+  Camera, X, Pencil, Check, ChevronRight, Bot,
 } from 'lucide-react'
 import { sb as supabase } from '@/lib/supabase-browser'
 import { useBelluUIStore } from '@/store/belluUIStore'
@@ -35,16 +35,7 @@ export function HeaderMenu({ open, onClose, user, userGoogle }: Props) {
   const [studioName, setStudioName] = useState(user?.studio_name ?? '')
   const [ownerName, setOwnerName] = useState(user?.owner_name ?? '')
   const [logoUrl, setLogoUrl] = useState<string | null>(user?.logo_url ?? null)
-  const [gcalConnected, setGcalConnected] = useState<boolean | null>(null)
   const [uploadingLogo, setUploadingLogo] = useState(false)
-
-  useEffect(() => {
-    supabase
-      .from('google_tokens')
-      .select('id')
-      .maybeSingle()
-      .then(({ data }) => setGcalConnected(!!data))
-  }, [])
 
   async function saveField(field: 'studio_name' | 'owner_name') {
     const value = field === 'studio_name' ? studioName : ownerName
@@ -219,21 +210,14 @@ export function HeaderMenu({ open, onClose, user, userGoogle }: Props) {
               Bellu — Configurações
             </Link>
 
-            <div className="flex items-center justify-between px-3 py-2.5">
-              <div className="flex items-center gap-3 text-stone-600 text-sm">
-                <Plug className="w-4 h-4 shrink-0 text-stone-400" />
-                Google Calendar
-              </div>
-              {gcalConnected === null ? null : gcalConnected ? (
-                <span className="flex items-center gap-1 text-xs text-emerald-500">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Conectado
-                </span>
-              ) : (
-                <button className="flex items-center gap-1 text-xs text-rose-400 hover:text-rose-500 transition-colors">
-                  <XCircle className="w-3.5 h-3.5" /> Reconectar
-                </button>
-              )}
-            </div>
+            <Link
+              href="/dashboard/settings"
+              onClick={onClose}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-stone-600 hover:bg-stone-50 hover:text-stone-800 transition-colors text-sm"
+            >
+              <CalendarDays className="w-4 h-4 shrink-0 text-stone-400" />
+              Google Calendar
+            </Link>
 
             <Link
               href="/dashboard/finance"
