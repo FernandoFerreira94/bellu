@@ -7,7 +7,7 @@ Sistema de agendamento mobile-first para nail designer solo (Ayumi Nails / "Bell
 - Agenda baseada na tabela `bookings` no Supabase (Google Calendar como espelho — fase futura)
 - Apenas a nail designer acessa o dashboard (auth via Supabase Google OAuth)
 - CRM básico de clientes
-- **Luna**: assistente WhatsApp (confirmação 24h) + chatbot IA no dashboard
+- **Bellu**: assistente IA no dashboard + WhatsApp (confirmação 24h)
 
 ---
 
@@ -23,7 +23,7 @@ Sistema de agendamento mobile-first para nail designer solo (Ayumi Nails / "Bell
 - Framer Motion (animações moderadas)
 - Sonner (notificações toast)
 - Vercel (deploy)
-- Anthropic SDK (Claude — chatbot Luna no dashboard)
+- Anthropic SDK (Claude — chatbot Bellu no dashboard)
 
 ---
 
@@ -78,14 +78,14 @@ Sistema de agendamento mobile-first para nail designer solo (Ayumi Nails / "Bell
 
 ---
 
-## Luna — WhatsApp Bot (regras críticas)
-- **Fase inicial**: Luna só envia confirmação **24h antes** do agendamento
+## Bellu — WhatsApp Bot (regras críticas)
+- **Fase inicial**: Bellu só envia confirmação **24h antes** do agendamento
 - **Horário permitido**: 08:00–18:00 APENAS
 - Se confirmação cair fora do horário → agendar para próximo período válido (ex: dia anterior às 17:00)
 
 ---
 
-## Luna — Chatbot IA no Dashboard
+## Bellu — Chatbot IA no Dashboard
 Assistente IA embutido no dashboard. Powered by Claude (Anthropic SDK).
 
 ### Capacidades:
@@ -120,7 +120,7 @@ src/
 │   │   └── profile/            # Perfil do studio ✅
 │   └── api/
 │       ├── google-calendar/
-│       ├── luna/
+│       ├── bellu/
 │       └── whatsapp/
 ├── components/
 │   ├── ui/                     # shadcn — nunca modificar diretamente
@@ -128,23 +128,29 @@ src/
 │   ├── clients/                # ClientList, ClientSheet ✅
 │   ├── services/               # ServiceList, ServiceSheet ✅
 │   ├── profile/                # ProfileForm ✅
-│   ├── calendar/               # (a implementar)
-│   └── luna/                   # LunaWidget
+│   ├── calendar/               # WeekView ✅
+│   ├── sync/                   # SyncIndicator
+│   └── bellu/                  # BelluWidget, BelluSheet
 ├── hooks/
 │   ├── useClients.ts           # useClients, useCreateClient, useUpdateClient ✅
 │   ├── useServices.ts          # useServices, useCreateService, useUpdateService, useDeleteService ✅
-│   ├── useBookings.ts          # (a implementar)
+│   ├── useBookings.ts          # ✅
 │   └── useGoogleCalendar.ts
 ├── store/
-│   ├── lunaUIStore.ts
+│   ├── belluUIStore.ts
+│   ├── syncStore.ts
 │   └── dashboardUIStore.ts
 ├── lib/
 │   ├── supabase.ts             # tipos Database + singleton legado (não usar em hooks)
 │   ├── supabase-browser.ts     # sb (singleton SSR-aware) — usar em hooks/client components
 │   ├── supabase-server.ts      # createSupabaseServerClient — usar em server components
-│   ├── google-calendar.ts
-│   ├── luna.ts
-│   └── availability.ts        # (a implementar — lógica de slots 08-18)
+│   ├── google-calendar-api.ts  # Google Calendar REST API client
+│   ├── google-token.ts         # OAuth token management
+│   ├── bellu.ts
+│   ├── bellu-context.ts        # system prompt com dados reais
+│   ├── bellu-tools.ts          # AI SDK tools
+│   ├── bellu-import.ts         # importação batch inteligente do Google Calendar
+│   └── availability.ts        # lógica de slots 08-18
 └── types/
     └── index.ts
 ```
@@ -169,10 +175,10 @@ src/
 6. Dashboard: Clientes ✅
 7. Dashboard: Serviços (procedures) ✅
 8. Dashboard: Financeiro ✅
-9. Luna — Infraestrutura DB + UI configuração ✅
-10. Dashboard: Luna chatbot IA ⏳ (aguarda API key Anthropic)
-11. Luna — WhatsApp infraestrutura ✅ (aguarda número para conectar)
-12. Google Calendar (write) ⏳
+9. Bellu — Infraestrutura DB + UI configuração ✅
+10. Dashboard: Bellu chatbot IA ⏳ (aguarda API key Anthropic)
+11. Bellu — WhatsApp infraestrutura ✅ (aguarda número para conectar)
+12. Google Calendar (write) ⏳ — rename concluído, OAuth+import em andamento
 
 ---
 
