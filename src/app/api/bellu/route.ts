@@ -1,8 +1,8 @@
 import { streamText, stepCountIs } from 'ai'
 import { anthropic } from '@ai-sdk/anthropic'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
-import { buildLunaSystemPrompt } from '@/lib/luna-context'
-import { lunaTools } from '@/lib/luna-tools'
+import { buildBelluSystemPrompt } from '@/lib/bellu-context'
+import { belluTools } from '@/lib/bellu-tools'
 
 export async function POST(request: Request) {
   const supabase = await createSupabaseServerClient()
@@ -12,13 +12,13 @@ export async function POST(request: Request) {
   }
 
   const { messages } = await request.json()
-  const system = await buildLunaSystemPrompt()
+  const system = await buildBelluSystemPrompt()
 
   const result = streamText({
     model: anthropic('claude-sonnet-4-6'),
     system,
     messages,
-    tools: lunaTools,
+    tools: belluTools,
     stopWhen: stepCountIs(5),
   })
 

@@ -1,8 +1,8 @@
-// src/store/lunaUIStore.ts
+// src/store/belluUIStore.ts
 import { create } from 'zustand'
 import type { UIMessage } from 'ai'
 
-type LunaUIStore = {
+type BelluUIStore = {
   isSheetOpen: boolean
   setSheetOpen: (open: boolean) => void
   messages: UIMessage[]
@@ -13,7 +13,7 @@ type LunaUIStore = {
   setWidgetOpen: (open: boolean) => void
 }
 
-export const useLunaUIStore = create<LunaUIStore>((set) => ({
+export const useBelluUIStore = create<BelluUIStore>((set) => ({
   isSheetOpen: false,
   setSheetOpen: (isSheetOpen) => set({ isSheetOpen }),
   messages: [],
