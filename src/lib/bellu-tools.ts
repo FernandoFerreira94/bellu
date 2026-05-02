@@ -188,4 +188,24 @@ export const belluTools = {
       }
     },
   }),
+
+  get_google_events: tool({
+    description: 'Retorna compromissos pessoais do Google Calendar (não são atendimentos) em uma data — útil para verificar conflitos antes de agendar',
+    inputSchema: zodSchema(z.object({
+      date: z.string().describe('Data no formato YYYY-MM-DD'),
+    })),
+    execute: async ({ date }) => {
+      const supabase = await createSupabaseServerClient()
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any)
+        .from('google_calendar_events')
+        .select('title, start_time, end_time')
+        .gte('start_time', `${date}T00:00:00+00:00`)
+        .lte('start_time', `${date}T23:59:59+00:00`)
+        .eq('is_personal', true)
+        .order('start_time') as { data: { title: string; start_time: string; end_time: string }[] | null; error: unknown }
+      if (error) return { error: 'Erro ao buscar eventos' }
+      return data ?? []
+    },
+  }),
 }

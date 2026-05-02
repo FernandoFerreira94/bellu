@@ -6,22 +6,34 @@ const DAY_NAMES = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 
 export async function buildBelluSystemPrompt(): Promise<string> {
   const supabase = await createSupabaseServerClient()
 
-  const [{ data: profile }, { data: workingHours }, { data: procedures }] = await Promise.all([
-    supabase
-      .from('studio_profile')
-      .select('studio_name, owner_name')
-      .single(),
-    supabase
-      .from('working_hours')
-      .select('day_of_week, start_time, end_time, active')
-      .order('day_of_week'),
-    supabase
-      .from('procedures')
-      .select('id, name, duration, price')
-      .eq('luna_enabled', true)
-      .eq('active', true)
-      .order('name'),
-  ])
+  const today = new Date().toISOString().slice(0, 10)
+  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+
+  const [{ data: profile }, { data: workingHours }, { data: procedures }, { data: gcalEvents }] =
+    await Promise.all([
+      supabase
+        .from('studio_profile')
+        .select('studio_name, owner_name')
+        .single(),
+      supabase
+        .from('working_hours')
+        .select('day_of_week, start_time, end_time, active')
+        .order('day_of_week'),
+      supabase
+        .from('procedures')
+        .select('id, name, duration, price')
+        .eq('luna_enabled', true)
+        .eq('active', true)
+        .order('name'),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase as any)
+        .from('google_calendar_events')
+        .select('title, start_time, end_time')
+        .gte('start_time', `${today}T00:00:00`)
+        .lte('start_time', `${tomorrow}T23:59:59`)
+        .eq('is_personal', true)
+        .order('start_time') as Promise<{ data: { title: string; start_time: string; end_time: string }[] | null }>,
+    ])
 
   const schedule = (workingHours ?? [])
     .map((wh) => {
@@ -46,6 +58,22 @@ export async function buildBelluSystemPrompt(): Promise<string> {
   const ownerName = profile?.owner_name ?? 'profissional'
   const studioName = profile?.studio_name ?? 'estúdio'
 
+  const gcalList = (gcalEvents ?? [])
+    .map((ev) => {
+      const start = new Date(ev.start_time).toLocaleTimeString('pt-BR', {
+        hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo',
+      })
+      const end = new Date(ev.end_time).toLocaleTimeString('pt-BR', {
+        hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo',
+      })
+      return `- ${ev.title}: ${start} – ${end}`
+    })
+    .join('\n')
+
+  const gcalSection = gcalList
+    ? `\nCompromissos pessoais hoje/amanhã (Google Calendar — NÃO são atendimentos):\n${gcalList}\n\nAo sugerir horários, verifique conflitos com esses compromissos e avise a profissional.`
+    : ''
+
   return `Você é Bellu, assistente pessoal da ${ownerName} do ${studioName}.
 Data e hora atual: ${now}
 
@@ -54,7 +82,7 @@ ${schedule || 'Não configurado'}
 
 Serviços disponíveis (você pode oferecer):
 ${servicesList || 'Nenhum serviço cadastrado'}
-
+${gcalSection}
 Regras obrigatórias:
 - Buffer mínimo de 30 minutos entre procedimentos.
 - Nunca agendar fora do horário de trabalho configurado.
