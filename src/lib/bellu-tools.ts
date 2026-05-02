@@ -1,9 +1,9 @@
-// src/lib/luna-tools.ts
+// src/lib/bellu-tools.ts
 import { tool, zodSchema } from 'ai'
 import { z } from 'zod'
 import { createSupabaseServerClient } from '@/lib/supabase-server'
 
-export const lunaTools = {
+export const belluTools = {
   get_available_slots: tool({
     description: 'Retorna horários disponíveis para um procedimento em uma data específica',
     inputSchema: zodSchema(z.object({

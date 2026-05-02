@@ -17,7 +17,7 @@ function isWithinSendWindow(): boolean {
 async function send(phone: string, text: string): Promise<void> {
   if (!isWithinSendWindow()) {
     // Fora do horário — não envia, apenas loga (a mensagem já foi salva no BD pelo chamador)
-    console.warn(`[Luna] Fora da janela de envio. Mensagem para ${phone} não enviada.`)
+    console.warn(`[Bellu] Fora da janela de envio. Mensagem para ${phone} não enviada.`)
     return
   }
   await sendWhatsAppMessage({ phone, message: text })
@@ -198,7 +198,7 @@ async function notifyProfessionalAboutCancellation(
   if (!professionalPhone) throw new Error('Profissional sem telefone configurado')
 
   const text =
-    `Luna aqui 🤖 Sua cliente *${clientName}* quer cancelar o horário de ` +
+    `Bellu aqui 🤖 Sua cliente *${clientName}* quer cancelar o horário de ` +
     `*${formatDate(payload.date)}* às *${formatTime(payload.start_time)}*. ` +
     `Responda *AUTORIZAR* para eu cancelar ou *EU RESOLVO* para falar com ela diretamente.`
 
@@ -252,7 +252,7 @@ async function notifyProfessionalAboutReschedule(
   if (!professionalPhone) throw new Error('Profissional sem telefone configurado')
 
   const text =
-    `Luna aqui 🤖 Sua cliente *${clientName}* quer *remarcar* o horário de ` +
+    `Bellu aqui 🤖 Sua cliente *${clientName}* quer *remarcar* o horário de ` +
     `*${formatDate(payload.date)}* às *${formatTime(payload.start_time)}*. ` +
     `Responda *AUTORIZAR* para eu liberar o horário atual e remarcarmos ou *EU RESOLVO* para falar com ela diretamente.`
 

@@ -1,9 +1,9 @@
-// src/lib/luna-context.ts
+// src/lib/bellu-context.ts
 import { createSupabaseServerClient } from '@/lib/supabase-server'
 
 const DAY_NAMES = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado']
 
-export async function buildLunaSystemPrompt(): Promise<string> {
+export async function buildBelluSystemPrompt(): Promise<string> {
   const supabase = await createSupabaseServerClient()
 
   const [{ data: profile }, { data: workingHours }, { data: procedures }] = await Promise.all([
@@ -46,7 +46,7 @@ export async function buildLunaSystemPrompt(): Promise<string> {
   const ownerName = profile?.owner_name ?? 'profissional'
   const studioName = profile?.studio_name ?? 'estúdio'
 
-  return `Você é Luna, assistente pessoal da ${ownerName} do ${studioName}.
+  return `Você é Bellu, assistente pessoal da ${ownerName} do ${studioName}.
 Data e hora atual: ${now}
 
 Horários de trabalho:
