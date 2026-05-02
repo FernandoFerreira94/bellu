@@ -6,6 +6,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { type Booking, useCancelBooking, useBookings } from '@/hooks/useBookings'
 import { BookingSheet } from './booking-sheet'
+import { useGoogleCalendarEvents } from '@/hooks/useGoogleCalendarEvents'
+import { format } from 'date-fns'
 
 const MONTHS_SHORT = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
 const MONTHS_FULL  = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']
@@ -249,6 +251,12 @@ export function WeekView() {
     const currentDay  = new Date(year, month, day)
     const isPast      = currentDay < today && !sameDay(currentDay, today)
     const dayBookings = bookingsForDate(currentDay)
+    
+    // GCal Overlay
+    const dayStartStr = format(currentDay, 'yyyy-MM-dd') + 'T00:00:00'
+    const dayEndStr = format(currentDay, 'yyyy-MM-dd') + 'T23:59:59'
+    const { data: gcalEvents = [] } = useGoogleCalendarEvents(dayStartStr, dayEndStr)
+
     const hours       = Array.from({ length: DAY_END - DAY_START }, (_, i) => DAY_START + i)
     const totalHeight = (DAY_END - DAY_START) * HOUR_HEIGHT
 
@@ -370,6 +378,32 @@ export function WeekView() {
                       </p>
                     )}
                   </button>
+                )
+              })}
+
+              {/* GCal Overlay */}
+              {gcalEvents.map((ev) => {
+                const start = new Date(ev.start_time)
+                const end = new Date(ev.end_time)
+                const startMin = (start.getHours() - DAY_START) * 60 + start.getMinutes()
+                const endMin = (end.getHours() - DAY_START) * 60 + end.getMinutes()
+                const top = startMin * (HOUR_HEIGHT / 60)
+                const height = Math.max((endMin - startMin) * (HOUR_HEIGHT / 60), 20)
+
+                // Só renderiza se estiver dentro do range visível
+                if (top < 0 && top + height < 0) return null
+                if (top > totalHeight) return null
+
+                return (
+                  <div
+                    key={ev.id}
+                    className="absolute left-12 right-2 rounded-lg bg-stone-200/50 border border-stone-300/30 px-2 py-1 pointer-events-none z-0"
+                    style={{ top, height }}
+                  >
+                    <p className="text-[10px] text-stone-500 font-medium truncate opacity-70">
+                      {ev.title} (GCal)
+                    </p>
+                  </div>
                 )
               })}
             </div>
