@@ -11,7 +11,13 @@ import { ChevronLeft } from "lucide-react"
 import { createSupabaseBrowserClient } from "@/lib/supabase-browser"
 import type { Specialty } from "@/types"
 
-type Step = 1 | 2 | 3
+type Step = 1 | 2 | 3 | 4
+
+type DaySchedule = {
+  active: boolean
+  start_time: string
+  end_time: string
+}
 
 type FormData = {
   studio_name: string
@@ -19,6 +25,7 @@ type FormData = {
   phone: string
   specialty: Specialty | null
   logo_url: string | null
+  workingHours: DaySchedule[]
 }
 
 const step1Schema = z.object({
@@ -35,6 +42,19 @@ const SPECIALTIES: { value: Specialty; label: string }[] = [
   { value: 'other', label: 'Outro' },
 ]
 
+const DOW_LABELS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+
+// Default: Seg–Sáb ativo 08:00–18:00, Dom inativo
+const DEFAULT_HOURS: DaySchedule[] = [
+  { active: false, start_time: '08:00', end_time: '18:00' }, // Dom
+  { active: true,  start_time: '08:00', end_time: '18:00' }, // Seg
+  { active: true,  start_time: '08:00', end_time: '18:00' }, // Ter
+  { active: true,  start_time: '08:00', end_time: '18:00' }, // Qua
+  { active: true,  start_time: '08:00', end_time: '18:00' }, // Qui
+  { active: true,  start_time: '08:00', end_time: '18:00' }, // Sex
+  { active: true,  start_time: '08:00', end_time: '18:00' }, // Sáb
+]
+
 export default function OnboardingPage() {
   const router = useRouter()
   const [step, setStep] = useState<Step>(1)
@@ -46,7 +66,9 @@ export default function OnboardingPage() {
     phone: '',
     specialty: null,
     logo_url: null,
+    workingHours: DEFAULT_HOURS,
   })
+  const [logoPreview, setLogoPreview] = useState<string | null>(null)
 
   function formatPhone(value: string) {
     const digits = value.replace(/\D/g, '').slice(0, 11)
@@ -55,7 +77,6 @@ export default function OnboardingPage() {
     }
     return digits.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3').replace(/-$/, '')
   }
-  const [logoPreview, setLogoPreview] = useState<string | null>(null)
 
   function handleBack() {
     if (step > 1) setStep((s) => (s - 1) as Step)
@@ -79,6 +100,18 @@ export default function OnboardingPage() {
       return
     }
     setStep(3)
+  }
+
+  function handleStep3() {
+    setStep(4)
+  }
+
+  function updateDay(idx: number, field: keyof DaySchedule, value: string | boolean) {
+    setForm((f) => {
+      const hours = [...f.workingHours]
+      hours[idx] = { ...hours[idx], [field]: value }
+      return { ...f, workingHours: hours }
+    })
   }
 
   async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -106,7 +139,7 @@ export default function OnboardingPage() {
     }
 
     const ext = file.type === 'image/svg+xml' ? 'svg' : 'png'
-    const path = `logos/${user.id}/logo.${ext}`
+    const path = `${user.id}/logo.${ext}`
 
     const { error } = await supabase.storage
       .from('studio-assets')
@@ -130,6 +163,8 @@ export default function OnboardingPage() {
 
   async function handleFinish() {
     setLoading(true)
+
+    // 1. Salvar studio_profile
     const res = await fetch('/api/studio', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -149,6 +184,24 @@ export default function OnboardingPage() {
       return
     }
 
+    // 2. Salvar working_hours
+    const supabase = createSupabaseBrowserClient()
+    const rows = form.workingHours.map((wh, idx) => ({
+      day_of_week: idx,
+      start_time: wh.start_time + ':00',
+      end_time: wh.end_time + ':00',
+      active: wh.active,
+    }))
+
+    const { error: whError } = await supabase
+      .from('working_hours')
+      .upsert(rows, { onConflict: 'day_of_week' })
+
+    if (whError) {
+      console.error('[onboarding] working_hours error:', whError)
+      // não bloqueia — usuário pode ajustar depois em settings
+    }
+
     router.push('/dashboard')
   }
 
@@ -162,7 +215,7 @@ export default function OnboardingPage() {
           </button>
         )}
         <div className="flex gap-1.5 flex-1">
-          {([1, 2, 3] as Step[]).map((s) => (
+          {([1, 2, 3, 4] as Step[]).map((s) => (
             <div
               key={s}
               className={`h-1 flex-1 rounded-full transition-colors duration-300 ${
@@ -246,8 +299,69 @@ export default function OnboardingPage() {
         </div>
       )}
 
-      {/* Step 3 — Sua marca */}
+      {/* Step 3 — Horários de expediente */}
       {step === 3 && (
+        <div className="flex-1 animate-in fade-in slide-in-from-bottom-2 duration-300">
+          <h1 className="text-2xl font-medium text-tercery mb-1">Seu expediente</h1>
+          <p className="text-muted-foreground text-sm mb-6">
+            Quando você trabalha? Já configuramos o padrão — ajuste se precisar.
+          </p>
+          <div className="space-y-2">
+            {form.workingHours.map((wh, idx) => (
+              <div
+                key={idx}
+                className={`flex items-center gap-3 p-3 rounded-xl border transition-colors ${
+                  wh.active ? 'bg-white border-stone-200' : 'bg-stone-50 border-stone-100'
+                }`}
+              >
+                {/* Toggle */}
+                <button
+                  type="button"
+                  onClick={() => updateDay(idx, 'active', !wh.active)}
+                  className={`w-10 h-5 rounded-full transition-colors shrink-0 relative ${
+                    wh.active ? 'bg-primary' : 'bg-stone-200'
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${
+                      wh.active ? 'translate-x-5' : 'translate-x-0.5'
+                    }`}
+                  />
+                </button>
+
+                {/* Dia */}
+                <span className={`text-sm font-medium w-8 shrink-0 ${wh.active ? 'text-stone-700' : 'text-stone-400'}`}>
+                  {DOW_LABELS[idx]}
+                </span>
+
+                {/* Horários */}
+                {wh.active ? (
+                  <div className="flex items-center gap-1.5 flex-1">
+                    <input
+                      type="time"
+                      value={wh.start_time}
+                      onChange={(e) => updateDay(idx, 'start_time', e.target.value)}
+                      className="flex-1 text-sm border border-stone-200 rounded-lg px-2 py-1 outline-none focus:border-primary text-stone-700 bg-white"
+                    />
+                    <span className="text-stone-400 text-xs">até</span>
+                    <input
+                      type="time"
+                      value={wh.end_time}
+                      onChange={(e) => updateDay(idx, 'end_time', e.target.value)}
+                      className="flex-1 text-sm border border-stone-200 rounded-lg px-2 py-1 outline-none focus:border-primary text-stone-700 bg-white"
+                    />
+                  </div>
+                ) : (
+                  <span className="text-xs text-stone-400 flex-1">Folga</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Step 4 — Sua marca */}
+      {step === 4 && (
         <div className="flex-1 animate-in fade-in slide-in-from-bottom-2 duration-300">
           <h1 className="text-2xl font-medium text-tercery mb-1">Sua marca</h1>
           <p className="text-muted-foreground text-sm mb-6">
@@ -297,6 +411,11 @@ export default function OnboardingPage() {
           </Button>
         )}
         {step === 3 && (
+          <Button size="lg" className="w-full rounded-full" onClick={handleStep3}>
+            Continuar
+          </Button>
+        )}
+        {step === 4 && (
           <>
             <Button
               size="lg"

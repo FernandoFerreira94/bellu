@@ -5,12 +5,13 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
-import { CalendarDays, Loader2, Unlink } from 'lucide-react'
+import { CalendarDays, Loader2, RefreshCw, Unlink } from 'lucide-react'
 import { sb } from '@/lib/supabase-browser'
 
 export function GoogleCalendarConnect() {
   const [connected, setConnected] = useState<boolean | null>(null)
   const [loading, setLoading] = useState(false)
+  const [syncing, setSyncing] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -19,6 +20,20 @@ export function GoogleCalendarConnect() {
       .maybeSingle()
       .then(({ data }) => setConnected(!!data))
   }, [])
+
+  async function handleSync() {
+    setSyncing(true)
+    try {
+      const res = await fetch('/api/google-calendar/sync-events', { method: 'POST' })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error ?? 'Erro')
+      toast.success(`${json.synced} evento(s) sincronizado(s)`)
+    } catch {
+      toast.error('Erro ao sincronizar eventos')
+    } finally {
+      setSyncing(false)
+    }
+  }
 
   async function handleDisconnect() {
     setLoading(true)
@@ -60,19 +75,34 @@ export function GoogleCalendarConnect() {
       {connected === null ? (
         <div className="h-8 w-20 rounded-lg bg-stone-100 animate-pulse" />
       ) : connected ? (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleDisconnect}
-          disabled={loading}
-          className="text-stone-400 hover:text-rose-600"
-        >
-          {loading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Unlink className="h-4 w-4" />
-          )}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSync}
+            disabled={syncing || loading}
+            className="text-stone-400 hover:text-emerald-600"
+          >
+            {syncing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleDisconnect}
+            disabled={loading || syncing}
+            className="text-stone-400 hover:text-rose-600"
+          >
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Unlink className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
       ) : (
         <Button
           size="sm"

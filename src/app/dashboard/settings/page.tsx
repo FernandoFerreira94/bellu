@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { sb } from '@/lib/supabase-browser'
@@ -9,7 +9,6 @@ import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Clock } from 'lucide-react'
 import { GoogleCalendarConnect } from '@/components/settings/GoogleCalendarConnect'
-import { GcalToast } from '@/components/settings/GcalToast'
 
 const DAY_NAMES = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
@@ -179,9 +178,6 @@ export default function SettingsPage() {
         <GoogleCalendarConnect />
       </div>
 
-      <Suspense fallback={null}>
-        <GcalToast />
-      </Suspense>
     </div>
   )
 }

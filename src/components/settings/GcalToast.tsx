@@ -3,11 +3,13 @@
 import { useEffect } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
 import { useSyncStore } from '@/store/syncStore'
 
 export function GcalToast() {
   const params = useSearchParams()
   const router = useRouter()
+  const qc = useQueryClient()
   const setSync = useSyncStore((s) => s.setSync)
 
   useEffect(() => {
@@ -31,6 +33,8 @@ export function GcalToast() {
             setSync(false)
             clearInterval(interval)
             toast.success('Bellu analisou sua agenda! Veja o chat.')
+            qc.invalidateQueries({ queryKey: ['google-calendar-events'] })
+            qc.invalidateQueries({ queryKey: ['google-calendar', 'events'] })
             router.refresh()
           }
         } catch {
@@ -60,7 +64,7 @@ export function GcalToast() {
     const url = new URL(window.location.href)
     url.searchParams.delete('gcal')
     router.replace(url.pathname)
-  }, [params, router, setSync])
+  }, [params, router, setSync, qc])
 
   return null
 }
